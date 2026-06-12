@@ -4,15 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Customer Operations announcement · ABC Corp (fictional)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316202E'/><rect x='7' y='13' width='8' height='6' rx='2' fill='%233D5ADB'/><rect x='17' y='13' width='8' height='6' rx='2' fill='%230E7C6B'/></svg>">
 <style>
   :root{
-    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    /* design tokens: edit these lines to re-skin the whole page */
     --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
     --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
     --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
     --honest:#9A5B00; --honest-tint:#FFF6E8;
     --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
     --bad:#B3261E; --bad-tint:#FBEAE9;
+    --shadow:0 1px 2px rgba(22,32,46,.05),0 4px 14px rgba(22,32,46,.04);
     --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
   }
@@ -21,7 +23,7 @@
 
   /* ── shared artifact bar (identical convention across all demos) ── */
   .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
-    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+    background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
   .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
   .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
   .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -34,9 +36,10 @@
 
   /* ── calm comms masthead ── */
   .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--lens-m365);margin:0 0 14px}
-  h1{font-size:34px;line-height:1.22;font-weight:800;letter-spacing:-.02em;margin:0 0 18px;max-width:18em}
+  h1{font-size:34px;line-height:1.22;font-weight:800;letter-spacing:-.022em;margin:0 0 8px;max-width:18em}
+  .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin:0 0 16px}
   .lede{font-size:19px;line-height:1.6;color:var(--ink-soft);margin:0 0 10px;max-width:34em}
-  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 44px}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 44px;max-width:78ch}
 
   section.announce{margin:0 0 48px}
   section.announce > h2{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
@@ -45,7 +48,7 @@
   /* what is changing */
   .changes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
   @media (max-width:660px){.changes{grid-template-columns:1fr}}
-  .change{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px}
+  .change{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:var(--shadow)}
   .change h3{font-size:15.5px;margin:0 0 8px}
   .change p{font-size:13.5px;color:var(--ink-soft);margin:0}
   .change .mark{display:block;width:26px;height:3px;background:var(--lens-m365);border-radius:2px;margin-bottom:14px}
@@ -58,7 +61,7 @@
   .role-tabs button[aria-selected="true"]{color:var(--lens-m365);background:var(--panel);border-color:var(--line);
     border-bottom:1px solid var(--panel);margin-bottom:-1px;position:relative;z-index:1}
   .role-tabs button:focus-visible,.faq summary:focus-visible,.copy-btn:focus-visible{outline:2px solid var(--lens-m365);outline-offset:2px}
-  .role-panel{background:var(--panel);border:1px solid var(--line);border-radius:0 10px 10px 10px;padding:24px 26px}
+  .role-panel{background:var(--panel);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:24px 26px;box-shadow:var(--shadow)}
   .role-panel[hidden]{display:none}
   .role-panel h3{font-size:16px;margin:0 0 10px}
   .role-panel ul{margin:0;padding-left:20px}
@@ -67,7 +70,7 @@
   .role-panel .stay{color:var(--ink-soft);font-size:13.5px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line)}
 
   /* FAQ accordion */
-  .faq details{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
+  .faq details{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow)}
   .faq summary{cursor:pointer;padding:15px 20px;font-weight:600;font-size:15px;list-style:none;display:flex;gap:12px;align-items:baseline}
   .faq summary::-webkit-details-marker{display:none}
   .faq summary::before{content:"+";font-family:var(--mono);color:var(--lens-m365);font-weight:700;flex:0 0 auto}
@@ -76,14 +79,14 @@
   .faq .a b{color:var(--ink)}
 
   /* contact box */
-  .contact{background:var(--lens-m365-tint);border:1px solid var(--lens-m365);border-radius:10px;padding:22px 26px}
+  .contact{background:var(--lens-m365-tint);border:1px solid var(--lens-m365);border-radius:12px;padding:22px 26px;box-shadow:var(--shadow)}
   .contact h2{font-size:16px;margin:0 0 8px}
   .contact p{margin:0;font-size:14.5px}
   .contact code{font-family:var(--mono);font-size:13.5px;background:var(--panel);border:1px solid var(--line);
     border-radius:5px;padding:2px 8px;color:var(--lens-m365);font-weight:600}
 
   /* ── shared "How this was made" panel (identical convention across all demos) ── */
-  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:12px;background:var(--honest-tint);overflow:hidden}
   details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
   details.made summary::-webkit-details-marker{display:none}
   details.made summary::before{content:"▸ ";font-family:var(--mono)}
@@ -93,7 +96,6 @@
   .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
     font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
   .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
-  .made-body a{color:var(--lens-m365)}
   .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
     padding:7px 14px;cursor:pointer}
   .copy-btn:hover{background:var(--lens-m365)}
@@ -105,20 +107,22 @@
 <body>
 
 <header class="abar">
-  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
-  <span class="file">demos/m365-06-townhall-onepager.html</span>
+  <span class="lens"><span class="dot"></span>Business lens</span>
+  <span class="file">demos/biz-06-townhall-onepager.html</span>
   <span class="badge">Fictional data</span>
   <a class="back" href="../index.html">← all artifacts</a>
 </header>
 
 <div class="wrap">
 
-  <p class="kicker">Town hall · 15 June 2026 · internal announcement</p>
-  <h1>ABC Corp's new Customer Operations model — what changes on 1 September 2026</h1>
+  <p class="kicker">Town hall · customer operations</p>
+  <h1>ABC Corp's new Customer Operations model: what changes on 1 September 2026</h1>
+  <p class="rep-meta">15 June 2026 · internal announcement · all customer-facing teams</p>
   <p class="lede">From 1 September, customer-facing teams move to a single Customer Operations model: one support
-  queue, one set of case tooling, and shared weekend coverage. Nobody's employment changes — this page explains
+  queue, one set of case tooling, and shared weekend coverage. Nobody's employment changes. This page explains
   what does, and when.</p>
-  <p class="fictional-note">ABC Corp — a fictional company. Every name, date, and detail on this page is invented for demonstration.</p>
+  <p class="fictional-note">ABC Corp is a fictional company. Every name, number and date is invented.
+  This is a reference artifact generated with an LLM coding agent; the brief that produces it is at the bottom of this page.</p>
 
   <section class="announce" aria-labelledby="h-changing">
     <h2 id="h-changing">What is changing</h2>
@@ -139,7 +143,7 @@
         <span class="mark" aria-hidden="true"></span>
         <h3>Weekend coverage rota</h3>
         <p>Weekend cover moves from volunteer overtime to a planned rota shared across all Customer Operations
-        teams — roughly one weekend in eight, scheduled a quarter ahead and compensated with time in lieu.</p>
+        teams: roughly one weekend in eight, scheduled a quarter ahead and compensated with time in lieu.</p>
       </div>
     </div>
   </section>
@@ -180,7 +184,7 @@
       <h3>If you work in Operations</h3>
       <ul>
         <li>Your team moves under the new Customer Operations directorate on <b>1 September</b>; your day-to-day manager is confirmed in the team mapping shared on 1 July.</li>
-        <li>You will be among the first trained on the new case tooling — Operations sessions run in the week of <b>4 August</b>.</li>
+        <li>You will be among the first trained on the new case tooling: Operations sessions run in the week of <b>4 August</b>.</li>
         <li>The weekend rota applies from September; your first scheduled weekend will be no earlier than <b>October</b>, published a quarter ahead.</li>
       </ul>
       <p class="stay">What stays the same: your contract, grade, salary, and office location.</p>
@@ -188,7 +192,7 @@
     <div class="role-panel" id="panel-eng" role="tabpanel" aria-labelledby="tab-eng" hidden>
       <h3>If you work in Engineering</h3>
       <ul>
-        <li>Reporting lines do not change for Engineering — you keep your current team and manager.</li>
+        <li>Reporting lines do not change for Engineering: you keep your current team and manager.</li>
         <li>Escalations from the single queue arrive through the new case tooling from <b>1 September</b>; the legacy ticket integrations to <code>order-gateway</code> and <code>batch-billing</code> are switched off two weeks later.</li>
         <li>On-call is unaffected. The weekend coverage rota applies to Customer Operations teams, not to Engineering on-call.</li>
       </ul>
@@ -197,7 +201,7 @@
     <div class="role-panel" id="panel-cs" role="tabpanel" aria-labelledby="tab-cs" hidden>
       <h3>If you work in Customer support</h3>
       <ul>
-        <li>From <b>1 September</b> you work the single global queue, routed by product area — the mapping shared on 1 July shows which product areas your team covers.</li>
+        <li>From <b>1 September</b> you work the single global queue, routed by product area; the mapping shared on 1 July shows which product areas your team covers.</li>
         <li>Training on the new case tooling starts <b>4 August</b>; every support colleague completes two half-day sessions before go-live, scheduled within working hours.</li>
         <li>The weekend rota replaces volunteer overtime: roughly one weekend in eight, with time in lieu, published a quarter in advance.</li>
       </ul>
@@ -208,10 +212,11 @@
   <section class="announce faq" aria-labelledby="h-faq">
     <h2 id="h-faq">Frequently asked questions</h2>
     <details>
-      <summary>Will roles be made redundant?</summary>
-      <p class="a"><b>No — nobody's employment changes; reporting lines and rotas do.</b> Every colleague in scope keeps
-      their contract, grade, and salary. The change is organisational: who you report to, which queue you work, and how
-      weekend cover is planned.</p>
+      <summary>Will my working hours or shift pattern change?</summary>
+      <p class="a"><b>Weekday working patterns are unchanged.</b> Your contracted hours and your usual weekday
+      schedule stay as they are. The one scheduling change is weekend cover for Customer Operations teams, which
+      moves from volunteer overtime to the planned rota described above: roughly one weekend in eight, published a
+      quarter ahead, with time in lieu.</p>
     </details>
     <details>
       <summary>Do I have to move office or change my working hours?</summary>
@@ -220,70 +225,66 @@
     </details>
     <details>
       <summary>When will I know exactly which team I'm in?</summary>
-      <p class="a">The full team mapping — every person, team, and manager — is shared with you and your current manager
+      <p class="a">The full team mapping (every person, team, and manager) is shared with you and your current manager
       on <b>1 July</b>. If anything in your mapping looks wrong, raise it with your manager or the comms mailbox below
       before <b>18 July</b>.</p>
     </details>
     <details>
       <summary>What happens to open cases in the old ticketing systems?</summary>
       <p class="a">Open cases and their full history are migrated to the new tooling during the last week of August.
-      Honest caveat: attachments older than three years move to a read-only archive rather than the live system —
-      they remain searchable, just not editable.</p>
+      Honest caveat: attachments older than three years move to a read-only archive rather than the live system.
+      They remain searchable, just not editable.</p>
     </details>
     <details>
       <summary>Is the weekend rota voluntary?</summary>
       <p class="a">No, and we want to be straightforward about that: the rota is part of the new model for Customer
-      Operations teams. It is designed to be light — roughly one weekend in eight, published a quarter ahead, with time
-      in lieu — and individual constraints (caring responsibilities, study schedules) are taken into account in planning.</p>
+      Operations teams. It is designed to be light (roughly one weekend in eight, published a quarter ahead, with time
+      in lieu) and individual constraints, such as caring responsibilities and study schedules, are taken into account in planning.</p>
     </details>
   </section>
 
   <section class="announce contact" aria-labelledby="h-contact">
     <h2 id="h-contact">Questions?</h2>
     <p>Ask at the town hall on 15 June, raise it with your manager, or write to the programme comms mailbox:
-    <code>lighthouse-comms@abc-corp.example</code> — every message gets a reply within two working days.</p>
+    <code>lighthouse-comms@abc-corp.example</code>. Every message gets a reply within two working days.</p>
   </section>
 
   <details class="made">
-    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <summary>How this was made: the brief, how to reproduce it, and an honesty note</summary>
     <div class="made-body">
       <section>
-        <h3>The prompt</h3>
+        <h3>The brief</h3>
         <pre id="prompt-text">From this comms brief [paste], create a one-page HTML announcement:
 headline, what's changing, a key-dates timeline, a 'what this means
 for you' section switchable by role (Operations / Engineering /
 Customer support), and an FAQ. One file, no images, calm corporate
 tone.</pre>
-        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+        <button class="copy-btn" data-copy="prompt-text">Copy brief</button>
       </section>
       <section>
-        <h3>Where this runs</h3>
-        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
-        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
-        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
-        <em>enabled by default</em> and can be disabled by your admin
-        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
-        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
-        file saved as <code>.html</code>, and open it in your browser.</p>
+        <h3>How to reproduce</h3>
+        <p>Paste the brief into any capable LLM: GPT, Claude, Gemini, Grok, DeepSeek, or the assistant your company
+        provides. Iterate a few rounds on layout and content until it reads well. Save the final answer as a
+        <code>.html</code> file and open it in any browser. Expect similar output, not identical: every model has its
+        own taste, and that is fine.</p>
       </section>
       <section>
         <h3>Honesty note</h3>
-        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
-        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
-        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+        <p>This reference artifact was built with Claude Code, an LLM coding agent, over several iterations. Treat it
+        as the bar to aim for, not as a guaranteed first answer. All data on this page is fictional.</p>
       </section>
     </div>
   </details>
 
   <footer class="colophon">
-    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Part of <a href="../index.html">"The artifact is the demo: HTML in the enterprise"</a></span>
     <span>Single file · no external requests · works offline</span>
   </footer>
 
 </div>
 
 <script>
-  /* role switcher — accessible tabs, vanilla JS */
+  /* role switcher: accessible tabs, vanilla JS */
   (function(){
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.role-tabs [role="tab"]'));
     function select(tab){
@@ -314,7 +315,7 @@ tone.</pre>
       var text = el.textContent;
       function done(ok){
         var old = btn.textContent;
-        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed, select the text manually';
         setTimeout(function(){ btn.textContent = old; }, 2200);
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {

@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Contact centre KPIs — May 2026 · ABC Corp (fictional)</title>
+<title>Contact centre KPIs: May 2026 · ABC Corp (fictional)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316202E'/><rect x='7' y='13' width='8' height='6' rx='2' fill='%233D5ADB'/><rect x='17' y='13' width='8' height='6' rx='2' fill='%230E7C6B'/></svg>">
 <style>
   :root{
-    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    /* ── design tokens: edit these lines to re-skin the whole page ── */
     --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
     --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
     --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
     --honest:#9A5B00; --honest-tint:#FFF6E8;
     --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
     --bad:#B3261E; --bad-tint:#FBEAE9;
+    --shadow:0 1px 2px rgba(22,32,46,.05),0 4px 14px rgba(22,32,46,.04);
     --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
   }
@@ -21,7 +23,7 @@
 
   /* ── shared artifact bar (identical convention across all demos) ── */
   .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
-    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+    background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
   .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
   .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
   .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -32,15 +34,15 @@
 
   .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
 
-  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
-  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--lens-m365);margin-bottom:8px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.022em;margin:0 0 4px}
   .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
-  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:8px 0 20px;max-width:78ch}
 
   /* ── KPI cards ── */
   .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
   @media (max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}}
-  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
   .kpi .label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
   .kpi .value{font-size:26px;font-weight:800;letter-spacing:-.02em}
   .kpi .value small{font-size:13px;font-weight:600;color:var(--ink-soft)}
@@ -48,7 +50,7 @@
   .kpi .delta.good{color:var(--ok)} .kpi .delta.bad{color:var(--bad)}
   .kpi .delta .vs{font-weight:400;color:var(--ink-soft)}
 
-  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
   section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
   .block-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 
@@ -63,7 +65,7 @@
   .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
 
   /* ── shared "How this was made" panel (identical convention across all demos) ── */
-  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:12px;background:var(--honest-tint);overflow:hidden}
   details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
   details.made summary::-webkit-details-marker{display:none}
   details.made summary::before{content:"▸ ";font-family:var(--mono)}
@@ -73,7 +75,6 @@
   .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
     font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
   .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
-  .made-body a{color:var(--lens-m365)}
   .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
     padding:7px 14px;cursor:pointer}
   .copy-btn:hover{background:var(--lens-m365)}
@@ -85,19 +86,19 @@
 <body>
 
 <header class="abar">
-  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
-  <span class="file">demos/m365-03-kpi-dashboard.html</span>
+  <span class="lens"><span class="dot"></span>Business lens</span>
+  <span class="file">demos/biz-03-kpi-dashboard.html</span>
   <span class="badge">Fictional data</span>
   <a class="back" href="../index.html">← all artifacts</a>
 </header>
 
 <div class="wrap">
 
-  <div class="rep-head">
-    <h1>Customer operations — contact centre KPIs</h1>
-    <span class="rep-meta">Latest week ending Sun 31 May 2026 · weekly Excel export</span>
-  </div>
-  <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+  <div class="eyebrow">KPI dashboard · customer operations</div>
+  <h1>Contact centre KPIs: May 2026</h1>
+  <div class="rep-meta">Latest week ending Sun 31 May 2026 · weekly spreadsheet export</div>
+  <p class="fictional-note">ABC Corp is a fictional company. Every name, number and date is invented.
+  This is a reference artifact generated with an LLM coding agent; the brief that produces it is at the bottom of this page.</p>
 
   <div class="kpis" id="kpi-cards" aria-label="Headline KPIs for the latest week"></div>
 
@@ -122,46 +123,40 @@
   </section>
 
   <details class="made">
-    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <summary>How this was made: the brief, how to reproduce it, and an honesty note</summary>
     <div class="made-body">
       <section>
-        <h3>The prompt</h3>
-        <pre id="prompt-text">I'm pasting a table exported from Excel [paste]. Build a one-file HTML
-dashboard: four KPI cards with week-over-week change arrows, a line chart
-of weekly volume, and a bar chart by channel. Add a 4-week/8-week toggle.
-Inline SVG only — no chart libraries, no external requests.</pre>
-        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+        <h3>The brief</h3>
+        <pre id="prompt-text">I'm pasting a table exported from a spreadsheet [paste]. Build a one-file
+HTML dashboard: four KPI cards with week-over-week change arrows, a line
+chart of weekly volume, and a bar chart by channel. Add a 4-week/8-week
+toggle. Inline SVG only: no chart libraries, no external requests.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy brief</button>
       </section>
       <section>
-        <h3>Where this runs</h3>
-        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
-        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
-        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
-        <em>enabled by default</em> and can be disabled by your admin
-        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
-        The App Builder agent in Microsoft 365 Copilot also builds lightweight interactive apps from a description
-        (<a href="https://www.microsoft.com/en-us/microsoft-365/blog/2025/10/28/microsoft-365-copilot-now-enables-you-to-build-apps-and-workflows/">Microsoft 365 blog, 28 Oct 2025</a>; availability varies by tenant, licence, and rollout).
-        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
-        file saved as <code>.html</code>, and open it in your browser.</p>
+        <h3>How to reproduce</h3>
+        <p>Paste the brief into any capable LLM: GPT, Claude, Gemini, Grok, DeepSeek, or the assistant your company
+        provides. Iterate a few rounds on layout and content until it reads well. Save the final answer as a
+        <code>.html</code> file and open it in any browser. Expect similar output, not identical: every model has its
+        own taste, and that is fine.</p>
       </section>
       <section>
         <h3>Honesty note</h3>
-        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
-        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
-        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+        <p>This reference artifact was built with Claude Code, an LLM coding agent, over several iterations. Treat it
+        as the bar to aim for, not as a guaranteed first answer. All data on this page is fictional.</p>
       </section>
     </div>
   </details>
 
   <footer class="colophon">
-    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Part of <a href="../index.html">"The artifact is the demo: HTML in the enterprise"</a></span>
     <span>Single file · no external requests · works offline</span>
   </footer>
 
 </div>
 
 <script>
-  // pasted from the weekly Excel export
+  // pasted from the weekly spreadsheet export
   var WEEKS = [
     { week:'2026-04-12', label:'12 Apr', contacts:2510, aht:8.1, fcr:70.4, csat:4.12, phone:1480, chat:610, email:420 },
     { week:'2026-04-19', label:'19 Apr', contacts:2500, aht:8.0, fcr:70.9, csat:4.15, phone:1455, chat:640, email:405 },
@@ -295,7 +290,7 @@ Inline SVG only — no chart libraries, no external requests.</pre>
       var text = el.textContent;
       function done(ok){
         var old = btn.textContent;
-        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed, select the text manually';
         setTimeout(function(){ btn.textContent = old; }, 2200);
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {

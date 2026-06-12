@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Project Lighthouse — SteerCo decisions &amp; actions · ABC Corp (fictional)</title>
+<title>Project Lighthouse: SteerCo decisions &amp; actions · ABC Corp (fictional)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316202E'/><rect x='7' y='13' width='8' height='6' rx='2' fill='%233D5ADB'/><rect x='17' y='13' width='8' height='6' rx='2' fill='%230E7C6B'/></svg>">
 <style>
   :root{
-    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    /* ── design tokens: edit these lines to re-skin the whole page ── */
     --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
     --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
     --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
     --honest:#9A5B00; --honest-tint:#FFF6E8;
     --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
     --bad:#B3261E; --bad-tint:#FBEAE9;
+    --shadow:0 1px 2px rgba(22,32,46,.05),0 4px 14px rgba(22,32,46,.04);
     --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
   }
@@ -21,7 +23,7 @@
 
   /* ── shared artifact bar (identical convention across all demos) ── */
   .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
-    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+    background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
   .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
   .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
   .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -32,14 +34,14 @@
 
   .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
 
-  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
-  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--lens-m365);margin-bottom:8px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.022em;margin:0 0 4px}
   .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
-  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:8px 0 20px;max-width:78ch}
 
   /* ── toolbar: owner filter + counts + copy ── */
   .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;background:var(--panel);
-    border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+    border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:16px;box-shadow:var(--shadow)}
   .toolbar label{font-size:13px;font-weight:600;color:var(--ink-soft)}
   .toolbar select{font:600 13.5px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);
     border-radius:6px;padding:6px 10px;cursor:pointer}
@@ -51,13 +53,14 @@
   .md-btn:hover{background:var(--lens-m365)}
   .local-note{flex-basis:100%;font-size:12px;color:var(--honest);margin:0}
 
-  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
   section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  section.block[aria-label="Decisions"]{margin-bottom:28px}
 
   table.list{width:100%;border-collapse:collapse;font-size:13.5px}
   table.list th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
-    border-bottom:1px solid var(--line);padding:6px 10px 6px 0}
-  table.list td{border-bottom:1px solid var(--line);padding:9px 10px 9px 0;vertical-align:top}
+    border-bottom:1px solid var(--line);padding:6px 10px 8px 0}
+  table.list td{border-bottom:1px solid var(--line);padding:12px 10px 12px 0;vertical-align:top}
   table.list tr:last-child td{border-bottom:none}
   .id{font-family:var(--mono);font-size:12px;color:var(--ink-soft);white-space:nowrap}
   .who{white-space:nowrap}
@@ -76,7 +79,7 @@
   .empty-msg{display:none;font-size:13px;color:var(--ink-soft);font-style:italic;margin:10px 0 2px}
 
   /* ── shared "How this was made" panel (identical convention across all demos) ── */
-  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:12px;background:var(--honest-tint);overflow:hidden}
   details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
   details.made summary::-webkit-details-marker{display:none}
   details.made summary::before{content:"▸ ";font-family:var(--mono)}
@@ -86,7 +89,6 @@
   .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
     font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
   .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
-  .made-body a{color:var(--lens-m365)}
   .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
     padding:7px 14px;cursor:pointer}
   .copy-btn:hover{background:var(--lens-m365)}
@@ -98,19 +100,19 @@
 <body>
 
 <header class="abar">
-  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
-  <span class="file">demos/m365-02-decisions-actions.html</span>
+  <span class="lens"><span class="dot"></span>Business lens</span>
+  <span class="file">demos/biz-02-decisions-actions.html</span>
   <span class="badge">Fictional data</span>
   <a class="back" href="../index.html">← all artifacts</a>
 </header>
 
 <div class="wrap">
 
-  <div class="rep-head">
-    <h1>Project Lighthouse — decisions &amp; actions</h1>
-    <span class="rep-meta">Steering committee · Tue 9 Jun 2026 · overdue marked as of Fri 12 Jun 2026</span>
-  </div>
-  <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+  <div class="eyebrow">Meeting record · steering committee</div>
+  <h1>Project Lighthouse: decisions &amp; actions</h1>
+  <div class="rep-meta">Steering committee · Tue 9 Jun 2026 · overdue marked as of Fri 12 Jun 2026</div>
+  <p class="fictional-note">ABC Corp is a fictional company. Every name, number and date is invented.
+  This is a reference artifact generated with an LLM coding agent; the brief that produces it is at the bottom of this page.</p>
 
   <div class="toolbar" role="group" aria-label="Filter and export controls">
     <label for="owner-filter">Owner</label>
@@ -124,7 +126,7 @@
     </select>
     <span class="counts" id="action-counts" aria-live="polite"></span>
     <button class="md-btn" id="copy-md">Copy open actions as Markdown</button>
-    <p class="local-note">Edits live in this page only — nothing is saved. Copy out what you need.</p>
+    <p class="local-note">Edits live in this page only; nothing is saved. Copy out what you need.</p>
   </div>
 
   <section class="block" aria-label="Decisions">
@@ -250,38 +252,34 @@
   </section>
 
   <details class="made">
-    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <summary>How this was made: the brief, how to reproduce it, and an honesty note</summary>
     <div class="made-body">
       <section>
-        <h3>The prompt</h3>
+        <h3>The brief</h3>
         <pre id="prompt-text">From this meeting transcript [paste], build a single self-contained HTML
-file with two tables — decisions (id, decision, rationale) and actions
-(owner, due date, status) — filterable by owner, with checkboxes to mark
+file with two tables: decisions (id, decision, rationale) and actions
+(owner, due date, status), filterable by owner, with checkboxes to mark
 actions done and a button that copies the open actions as a Markdown list
-I can paste into Teams. Inline CSS/JS only, one file.</pre>
-        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+I can paste into chat. Inline CSS/JS only, one file.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy brief</button>
       </section>
       <section>
-        <h3>Where this runs</h3>
-        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
-        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
-        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
-        <em>enabled by default</em> and can be disabled by your admin
-        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
-        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
-        file saved as <code>.html</code>, and open it in your browser.</p>
+        <h3>How to reproduce</h3>
+        <p>Paste the brief into any capable LLM: GPT, Claude, Gemini, Grok, DeepSeek, or the assistant your company
+        provides. Iterate a few rounds on layout and content until it reads well. Save the final answer as a
+        <code>.html</code> file and open it in any browser. Expect similar output, not identical: every model has its
+        own taste, and that is fine.</p>
       </section>
       <section>
         <h3>Honesty note</h3>
-        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
-        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
-        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+        <p>This reference artifact was built with Claude Code, an LLM coding agent, over several iterations. Treat it
+        as the bar to aim for, not as a guaranteed first answer. All data on this page is fictional.</p>
       </section>
     </div>
   </details>
 
   <footer class="colophon">
-    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Part of <a href="../index.html">"The artifact is the demo: HTML in the enterprise"</a></span>
     <span>Single file · no external requests · works offline</span>
   </footer>
 
@@ -292,7 +290,7 @@ I can paste into Teams. Inline CSS/JS only, one file.</pre>
   function copyTextWithFallback(text, btn){
     function done(ok){
       var old = btn.textContent;
-      btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+      btn.textContent = ok ? 'Copied ✓' : 'Copy failed, select the text manually';
       setTimeout(function(){ btn.textContent = old; }, 2200);
     }
     function fallback(){
@@ -366,12 +364,12 @@ I can paste into Teams. Inline CSS/JS only, one file.</pre>
   /* copy the CURRENTLY FILTERED open actions as a Markdown task list */
   document.getElementById('copy-md').addEventListener('click', function(){
     var owner = ownerFilter.value;
-    var lines = ['**Open actions — Project Lighthouse SteerCo, 9 Jun 2026' +
+    var lines = ['**Open actions · Project Lighthouse SteerCo, 9 Jun 2026' +
                  (owner === 'all' ? '' : ' (owner: ' + owner + ')') + '**', ''];
     actionRows.forEach(function(tr){
       if (tr.classList.contains('hidden-row')) return;
       if (tr.querySelector('input[type=checkbox]').checked) return;
-      lines.push('- [ ] ' + tr.querySelector('.id').textContent + ' — ' +
+      lines.push('- [ ] ' + tr.querySelector('.id').textContent + ': ' +
         tr.querySelector('.act-text').textContent + ' (' +
         tr.getAttribute('data-owner') + ', due ' + tr.getAttribute('data-due-label') + ')');
     });

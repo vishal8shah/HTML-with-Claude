@@ -3,16 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Raising a procurement request — new joiner guide · ABC Corp (fictional)</title>
+<title>Raising a procurement request: new joiner guide · ABC Corp (fictional)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316202E'/><rect x='7' y='13' width='8' height='6' rx='2' fill='%233D5ADB'/><rect x='17' y='13' width='8' height='6' rx='2' fill='%230E7C6B'/></svg>">
 <style>
   :root{
-    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    /* ── design tokens: edit these lines to re-skin the whole page ── */
     --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
     --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
     --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
     --honest:#9A5B00; --honest-tint:#FFF6E8;
     --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
     --bad:#B3261E; --bad-tint:#FBEAE9;
+    --shadow:0 1px 2px rgba(22,32,46,.05),0 4px 14px rgba(22,32,46,.04);
     --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
   }
@@ -21,7 +23,7 @@
 
   /* ── shared artifact bar (identical convention across all demos) ── */
   .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
-    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+    background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
   .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
   .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
   .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -32,12 +34,12 @@
 
   .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
 
-  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
-  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--lens-m365);margin-bottom:8px}
+  h1{font-size:28px;font-weight:800;letter-spacing:-.022em;margin:0 0 4px}
   .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
-  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:8px 0 20px;max-width:78ch}
 
-  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
   section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
   .block-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .block-head h2{margin:0}
@@ -48,7 +50,7 @@
 
   /* ── numbered collapsible steps ── */
   details.step{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:var(--panel);overflow:hidden}
-  details.step summary{cursor:pointer;display:flex;align-items:center;gap:12px;padding:11px 14px;list-style:none;font-weight:700;font-size:14.5px}
+  details.step summary{cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 14px;list-style:none;font-weight:700;font-size:14.5px}
   details.step summary::-webkit-details-marker{display:none}
   details.step summary:focus-visible{outline:2px solid var(--lens-m365);outline-offset:-2px}
   details.step summary .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--lens-m365);color:#fff;
@@ -80,7 +82,7 @@
   dl.gloss dd{margin:2px 0 0 0;color:var(--ink-soft)}
 
   /* ── shared "How this was made" panel (identical convention across all demos) ── */
-  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:12px;background:var(--honest-tint);overflow:hidden}
   details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
   details.made summary::-webkit-details-marker{display:none}
   details.made summary::before{content:"▸ ";font-family:var(--mono)}
@@ -90,7 +92,6 @@
   .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
     font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
   .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
-  .made-body a{color:var(--lens-m365)}
   .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
     padding:7px 14px;cursor:pointer}
   .copy-btn:hover{background:var(--lens-m365)}
@@ -102,24 +103,24 @@
 <body>
 
 <header class="abar">
-  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
-  <span class="file">demos/m365-04-onboarding-guide.html</span>
+  <span class="lens"><span class="dot"></span>Business lens</span>
+  <span class="file">demos/biz-04-onboarding-guide.html</span>
   <span class="badge">Fictional data</span>
   <a class="back" href="../index.html">← all artifacts</a>
 </header>
 
 <div class="wrap">
 
-  <div class="rep-head">
-    <h1>Raising a procurement request</h1>
-    <span class="rep-meta">New joiner guide · process owner: procurement office · v2.3, Jun 2026</span>
-  </div>
-  <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+  <div class="eyebrow">New joiner guide · procurement</div>
+  <h1>Raising a procurement request</h1>
+  <div class="rep-meta">process owner: procurement office · v2.3, Jun 2026</div>
+  <p class="fictional-note">ABC Corp is a fictional company. Every name, number and date is invented.
+  This is a reference artifact generated with an LLM coding agent; the brief that produces it is at the bottom of this page.</p>
 
   <section class="block" aria-label="Process at a glance">
     <h2>The approval chain at a glance</h2>
     <svg viewBox="0 0 960 400" width="100%" role="img"
-         aria-label="Swimlane flowchart with four lanes — Requester, Line manager, Procurement, Finance — showing seven steps from submitting a request to goods receipt, with a dashed rejection loop from line manager approval back to the requester">
+         aria-label="Swimlane flowchart with four lanes (Requester, Line manager, Procurement, Finance) showing seven steps from submitting a request to goods receipt, with a dashed rejection loop from line manager approval back to the requester">
       <defs>
         <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
           <path d="M0 0 L10 5 L0 10 z" fill="var(--lens-m365)"/>
@@ -155,7 +156,7 @@
       <!-- rejection loop (dashed) -->
       <path d="M234 148 H158 V82" fill="none" stroke="var(--bad)" stroke-width="1.8"
             stroke-dasharray="6 4" marker-end="url(#arr-rej)"/>
-      <text x="150" y="120" font-size="10.5" fill="var(--bad)" text-anchor="end">rejected —</text>
+      <text x="150" y="120" font-size="10.5" fill="var(--bad)" text-anchor="end">rejected:</text>
       <text x="150" y="133" font-size="10.5" fill="var(--bad)" text-anchor="end">revise &amp; resubmit</text>
 
       <!-- nodes: x-centers 158, 282, 406, 530, 654, 778, 902 -->
@@ -196,7 +197,7 @@
     <details class="step">
       <summary><span class="num">2</span>Line manager approval<span class="chip">typical: 1–2 working days</span><span class="chev">▸</span></summary>
       <div class="step-body"><p>Your line manager confirms the need is real and the cost centre is right. They can approve,
-      reject, or send the PR back with questions — a rejection returns it to you to revise and resubmit, so a clear business
+      reject, or send the PR back with questions. A rejection returns it to you to revise and resubmit, so a clear business
       reason up front saves a full round trip.</p></div>
     </details>
     <details class="step">
@@ -208,25 +209,25 @@
     <details class="step">
       <summary><span class="num">4</span>Vendor &amp; contract check<span class="chip">typical: 2–5 working days</span><span class="chev">▸</span></summary>
       <div class="step-body"><p>The buyer verifies the vendor is on the preferred vendor list and that terms, data-protection
-      clauses, and insurance are current. A new vendor triggers onboarding and due diligence, which adds one to two weeks —
-      check the list before you choose a supplier.</p></div>
+      clauses, and insurance are current. A new vendor triggers onboarding and due diligence, which adds one to two weeks,
+      so check the list before you choose a supplier.</p></div>
     </details>
     <details class="step">
       <summary><span class="num">5</span>Finance approval<span class="chip">typical: 1–3 working days</span><span class="chev">▸</span></summary>
       <div class="step-body"><p>Finance checks budget availability against the cost centre and the delegation-of-authority
-      matrix: your director signs off between €25,000 and €100,000, and the CFO above that. Quarter-end weeks are slower —
-      plan around them for urgent purchases.</p></div>
+      matrix: your director signs off between €25,000 and €100,000, and the CFO above that. Quarter-end weeks are slower,
+      so plan around them for urgent purchases.</p></div>
     </details>
     <details class="step">
       <summary><span class="num">6</span>PO issued<span class="chip">typical: 1 working day</span><span class="chev">▸</span></summary>
       <div class="step-body"><p>Procurement converts the approved PR into a purchase order (PO) and sends it to the vendor.
-      The PO number is your reference for everything that follows — vendors should never start work, and invoices are never
+      The PO number is your reference for everything that follows. Vendors should never start work, and invoices are never
       paid, without one.</p></div>
     </details>
     <details class="step">
       <summary><span class="num">7</span>Goods receipt<span class="chip">typical: on delivery</span><span class="chev">▸</span></summary>
       <div class="step-body"><p>When the goods or services arrive, confirm receipt in the portal against the PO line items.
-      This completes the three-way match (PO, receipt, invoice) that releases payment to the vendor — unconfirmed receipts
+      This completes the three-way match (PO, receipt, invoice) that releases payment to the vendor. Unconfirmed receipts
       are the most common reason vendors chase late payment.</p></div>
     </details>
   </section>
@@ -245,8 +246,8 @@
     </details>
     <details class="faq-item">
       <summary>The vendor I want is not on the preferred list. What now?</summary>
-      <p>Raise the PR anyway and flag the new vendor in the description. The buyer starts vendor onboarding in step 4 —
-      expect one to two extra weeks for due diligence, and have a preferred-list alternative ready in case it fails.</p>
+      <p>Raise the PR anyway and flag the new vendor in the description. The buyer starts vendor onboarding in step 4.
+      Expect one to two extra weeks for due diligence, and have a preferred-list alternative ready in case it fails.</p>
     </details>
     <details class="faq-item">
       <summary>When do I need quotes, and how many?</summary>
@@ -263,9 +264,9 @@
   <section class="block" aria-label="Glossary">
     <h2>Glossary</h2>
     <dl class="gloss">
-      <dt><dfn title="Purchase requisition: the internal request you raise asking permission to buy — nothing is ordered yet.">PR — purchase requisition</dfn></dt>
+      <dt><dfn title="Purchase requisition: the internal request you raise asking permission to buy; nothing is ordered yet.">PR · purchase requisition</dfn></dt>
       <dd>The internal request asking permission to buy. It carries the approvals; nothing is ordered yet.</dd>
-      <dt><dfn title="Purchase order: the legally binding order ABC Corp sends to the vendor once a PR is fully approved.">PO — purchase order</dfn></dt>
+      <dt><dfn title="Purchase order: the legally binding order ABC Corp sends to the vendor once a PR is fully approved.">PO · purchase order</dfn></dt>
       <dd>The binding order sent to the vendor after approval. Its number is the reference for delivery and payment.</dd>
       <dt><dfn title="A payment control: the PO, the goods receipt, and the invoice must agree before payment is released.">Three-way match</dfn></dt>
       <dd>The control that compares PO, goods receipt, and invoice. Payment is released only when all three agree.</dd>
@@ -275,37 +276,33 @@
   </section>
 
   <details class="made">
-    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <summary>How this was made: the brief, how to reproduce it, and an honesty note</summary>
     <div class="made-body">
       <section>
-        <h3>The prompt</h3>
+        <h3>The brief</h3>
         <pre id="prompt-text">Turn this process document [paste] into an interactive single-file HTML
 guide for new joiners: numbered collapsible steps, a flowchart of the
 approval chain, expand/collapse-all buttons, an FAQ, and a short glossary.
 It must work offline as one file.</pre>
-        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+        <button class="copy-btn" data-copy="prompt-text">Copy brief</button>
       </section>
       <section>
-        <h3>Where this runs</h3>
-        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
-        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
-        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
-        <em>enabled by default</em> and can be disabled by your admin
-        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
-        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
-        file saved as <code>.html</code>, and open it in your browser.</p>
+        <h3>How to reproduce</h3>
+        <p>Paste the brief into any capable LLM: GPT, Claude, Gemini, Grok, DeepSeek, or the assistant your company
+        provides. Iterate a few rounds on layout and content until it reads well. Save the final answer as a
+        <code>.html</code> file and open it in any browser. Expect similar output, not identical: every model has its
+        own taste, and that is fine.</p>
       </section>
       <section>
         <h3>Honesty note</h3>
-        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
-        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
-        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+        <p>This reference artifact was built with Claude Code, an LLM coding agent, over several iterations. Treat it
+        as the bar to aim for, not as a guaranteed first answer. All data on this page is fictional.</p>
       </section>
     </div>
   </details>
 
   <footer class="colophon">
-    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Part of <a href="../index.html">"The artifact is the demo: HTML in the enterprise"</a></span>
     <span>Single file · no external requests · works offline</span>
   </footer>
 
@@ -326,7 +323,7 @@ It must work offline as one file.</pre>
       var text = el.textContent;
       function done(ok){
         var old = btn.textContent;
-        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed, select the text manually';
         setTimeout(function(){ btn.textContent = old; }, 2200);
       }
       if (navigator.clipboard && navigator.clipboard.writeText) {
