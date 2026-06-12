@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release evidence — CHG-88412 · order-gateway 2026.06.1 · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-gh);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-gh)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-gh)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+
+  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+
+  /* change header block */
+  .chg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px}
+  .chg-grid div{padding:12px 16px;border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+  .chg-grid dt{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 3px}
+  .chg-grid dd{margin:0;font-family:var(--mono);font-size:13px;font-weight:600}
+  .chg-grid dd.plain{font-family:var(--sans)}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+
+  /* commit inventory */
+  table.inv{width:100%;border-collapse:collapse;font-size:13px}
+  table.inv th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding:6px 10px 6px 0}
+  table.inv td{border-bottom:1px solid var(--line);padding:8px 10px 8px 0;vertical-align:top}
+  table.inv tr:last-child td{border-bottom:none}
+  .sha,.ticket{font-family:var(--mono);font-size:12px;white-space:nowrap}
+  .ticket{color:var(--lens-gh);font-weight:600}
+  .chip{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;
+    border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .chip.low{color:var(--ok);background:var(--ok-tint);border:1px solid var(--ok)}
+  .chip.med{color:var(--warn);background:var(--warn-tint);border:1px solid var(--warn)}
+
+  /* test evidence */
+  details.suite{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:var(--ground)}
+  details.suite:last-child{margin-bottom:0}
+  details.suite summary{cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 14px;
+    font-size:13.5px;font-weight:700;list-style:none}
+  details.suite summary::-webkit-details-marker{display:none}
+  details.suite summary::before{content:"▸";font-family:var(--mono);color:var(--ink-soft)}
+  details.suite[open] summary::before{content:"▾"}
+  details.suite summary:focus-visible{outline:2px solid var(--lens-gh);outline-offset:2px;border-radius:6px}
+  .suite-stat{font-family:var(--mono);font-size:12px;font-weight:400;color:var(--ink-soft)}
+  .suite-stat b{color:var(--ok);font-weight:700}
+  .suite-body{padding:2px 16px 14px 32px;font-size:13px}
+  ul.tests{margin:6px 0 0;padding-left:0;list-style:none}
+  ul.tests li{font-family:var(--mono);font-size:12px;color:var(--ink-soft);padding:3px 0}
+  ul.tests li::before{content:"✓ ";color:var(--ok);font-weight:700}
+  .spark-pair{display:flex;gap:24px;flex-wrap:wrap;margin:10px 0 6px}
+  .spark{flex:1;min-width:220px}
+  .spark .cap{font-size:11.5px;color:var(--ink-soft);margin-bottom:4px}
+  .spark .cap b{color:var(--ink);font-family:var(--mono)}
+  .verdict{margin:8px 0 0;font-size:13px;font-weight:600;color:var(--ok)}
+
+  /* approvals */
+  ul.appr{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+  ul.appr li{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+  ul.appr li:last-child{border-bottom:none;padding-bottom:0}
+  .tick{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
+    background:var(--ok-tint);border:1.5px solid var(--ok);color:var(--ok);font-size:12px;font-weight:800;align-self:center}
+  .appr-what{font-weight:700;min-width:160px}
+  .appr-who{font-size:13px;color:var(--ink-soft)}
+  .appr-who b{color:var(--ink)}
+  .appr-date{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+
+  /* rollback */
+  ol.rollback{margin:0;padding-left:22px}
+  ol.rollback li{margin-bottom:9px}
+  ol.rollback li:last-child{margin-bottom:0}
+  ol.rollback .est{font-family:var(--mono);font-size:11.5px;color:var(--lens-gh);font-weight:700;white-space:nowrap}
+  .rb-total{margin:12px 0 0;font-size:13px;color:var(--ink-soft)}
+  .rb-total b{color:var(--ink)}
+
+  /* timeline */
+  ul.tl{margin:0;padding:0;list-style:none;position:relative}
+  ul.tl::before{content:"";position:absolute;left:64px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  ul.tl li{display:flex;gap:18px;padding:6px 0;position:relative}
+  ul.tl .t{flex:0 0 52px;font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--lens-gh);text-align:right}
+  ul.tl .node{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:var(--lens-gh);margin-top:5px;position:relative;z-index:1;border:2px solid var(--panel)}
+  ul.tl .what{font-size:13.5px}
+  ul.tl .what small{display:block;color:var(--ink-soft);font-size:12px}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0 0 8px;font-size:13.5px;color:var(--ink)}
+  .made-body p:last-child{margin-bottom:0}
+  .made-body a{color:var(--lens-gh)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-gh)}
+  .copy-btn:focus-visible{outline:2px solid var(--lens-gh);outline-offset:2px}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+
+  /* ── print: clean evidence record on ~2 A4 pages ── */
+  @media print{
+    body{background:#fff;font-size:11px}
+    .abar,details.made,footer.colophon{display:none}
+    .wrap{max-width:none;padding:0}
+    section.block,.chg-grid{border:1px solid #bbb;break-inside:avoid;margin-bottom:8px;padding:10px 12px}
+    .chg-grid{padding:0}
+    details.suite{break-inside:avoid}
+    details.suite[open] summary::before,details.suite summary::before{content:""}
+    details.suite .suite-body{display:block}
+    h1{font-size:18px}
+    section.block h2{margin-bottom:8px}
+  }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>GitHub Copilot · engineering lens</span>
+  <span class="file">demos/gh-10-release-evidence.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="rep-head">
+    <h1>Release evidence — order-gateway 2026.06.1</h1>
+    <span class="rep-meta">change record CHG-88412 · Project Lighthouse · generated 10 Jun 2026, 20:05</span>
+  </div>
+  <p class="fictional-note">ABC Corp — a fictional company. Every name, SHA, ticket, and timestamp on this page is invented for demonstration.</p>
+
+  <dl class="chg-grid" aria-label="Change record header">
+    <div><dt>Change ID</dt><dd>CHG-88412</dd></div>
+    <div><dt>Release</dt><dd>order-gateway 2026.06.1</dd></div>
+    <div><dt>Environment</dt><dd>PROD</dd></div>
+    <div><dt>Change class</dt><dd class="plain">Normal · medium risk</dd></div>
+    <div><dt>Deployed by</dt><dd class="plain">J. Lindqvist (release engineer)</dd></div>
+    <div><dt>Deployed</dt><dd>10 Jun 2026, 19:00–19:47 CEST</dd></div>
+    <div><dt>CAB reference</dt><dd>CAB-2026-W24-07</dd></div>
+    <div><dt>Result</dt><dd class="plain" style="color:var(--ok);font-weight:700">Deployed — no rollback</dd></div>
+  </dl>
+
+  <section class="block" aria-label="Change inventory">
+    <h2>Change inventory — 10 commits in scope</h2>
+    <table class="inv">
+      <thead><tr><th>Commit</th><th>Summary</th><th>Ticket</th><th>Risk</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sha">a3f81c2</span></td><td>Add idempotency key check to order-create endpoint</td><td><span class="ticket">LH-4312</span></td><td><span class="chip med">MED</span></td></tr>
+        <tr><td><span class="sha">9b04e7d</span></td><td>Migrate retry queue from in-memory to persisted store</td><td><span class="ticket">LH-4318</span></td><td><span class="chip med">MED</span></td></tr>
+        <tr><td><span class="sha">c71d950</span></td><td>Bump connection-pool ceiling for peak batch windows</td><td><span class="ticket">LH-4325</span></td><td><span class="chip low">LOW</span></td></tr>
+        <tr><td><span class="sha">e28aa14</span></td><td>Fix rounding drift in multi-currency order totals</td><td><span class="ticket">LH-4297</span></td><td><span class="chip med">MED</span></td></tr>
+        <tr><td><span class="sha">5fd3b6e</span></td><td>Structured logging for rejected order payloads</td><td><span class="ticket">LH-4330</span></td><td><span class="chip low">LOW</span></td></tr>
+        <tr><td><span class="sha">12c9f08</span></td><td>Remove deprecated v1 order-status endpoint (dark since April)</td><td><span class="ticket">LH-4188</span></td><td><span class="chip low">LOW</span></td></tr>
+        <tr><td><span class="sha">b8e0271</span></td><td>Tighten input validation on customer-reference field</td><td><span class="ticket">LH-4334</span></td><td><span class="chip low">LOW</span></td></tr>
+        <tr><td><span class="sha">76aa9c3</span></td><td>New health probe covering downstream pricing-service link</td><td><span class="ticket">LH-4341</span></td><td><span class="chip low">LOW</span></td></tr>
+        <tr><td><span class="sha">04de58b</span></td><td>Config: stage rollout flag for the new retry queue (default off)</td><td><span class="ticket">LH-4318</span></td><td><span class="chip low">LOW</span></td></tr>
+        <tr><td><span class="sha">f93c1ad</span></td><td>Update generated API docs and changelog for 2026.06.1</td><td><span class="ticket">LH-4350</span></td><td><span class="chip low">LOW</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block" aria-label="Test evidence">
+    <h2>Test evidence — all suites green on release candidate <span class="sha" style="text-transform:none">f93c1ad</span></h2>
+
+    <details class="suite">
+      <summary>Unit tests <span class="suite-stat"><b>1,482 passed</b> · 0 failed · 11.2s</span></summary>
+      <div class="suite-body">
+        <p style="margin:6px 0 0;color:var(--ink-soft)">Representative cases (5 of 1,482):</p>
+        <ul class="tests">
+          <li>OrderTotalsTest.multiCurrencyRounding_halfEvenAcrossLines</li>
+          <li>IdempotencyKeyTest.duplicateKeyWithinWindow_returnsOriginalResult</li>
+          <li>RetryQueueTest.persistedEntrySurvivesRestart</li>
+          <li>CustomerRefValidatorTest.rejectsControlCharacters</li>
+          <li>HealthProbeTest.pricingLinkDown_reportsDegradedNotDead</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="suite">
+      <summary>Integration tests <span class="suite-stat"><b>214 passed</b> · 0 failed · 4m 38s</span></summary>
+      <div class="suite-body">
+        <p style="margin:6px 0 0;color:var(--ink-soft)">Representative cases (4 of 214):</p>
+        <ul class="tests">
+          <li>OrderFlowIT.createOrder_endToEnd_withPricingServiceStub</li>
+          <li>RetryQueueIT.brokerOutage_ordersReplayedInOrderAfterRecovery</li>
+          <li>StatusEndpointIT.v1Removed_returns410WithMigrationHint</li>
+          <li>RolloutFlagIT.retryQueueFlagOff_legacyPathStillServes</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="suite">
+      <summary>Performance <span class="suite-stat"><b>p95 within budget</b> · 30-min soak, 2× peak load</span></summary>
+      <div class="suite-body">
+        <div class="spark-pair">
+          <div class="spark">
+            <div class="cap">p95 latency — before (2026.05.2): <b>184 ms</b> avg</div>
+            <svg viewBox="0 0 220 48" width="100%" height="48" role="img" aria-label="Sparkline of p95 latency before the release, hovering around 184 milliseconds">
+              <rect x="0" y="0" width="220" height="48" fill="var(--ground)" rx="4"/>
+              <polyline fill="none" stroke="var(--ink-soft)" stroke-width="2"
+                points="5,26 25,22 45,28 65,24 85,30 105,25 125,27 145,23 165,29 185,26 215,25"/>
+              <text x="212" y="14" font-size="9" text-anchor="end" fill="var(--ink-soft)">184 ms</text>
+            </svg>
+          </div>
+          <div class="spark">
+            <div class="cap">p95 latency — after (2026.06.1): <b>171 ms</b> avg</div>
+            <svg viewBox="0 0 220 48" width="100%" height="48" role="img" aria-label="Sparkline of p95 latency after the release, hovering around 171 milliseconds, slightly lower than before">
+              <rect x="0" y="0" width="220" height="48" fill="var(--ground)" rx="4"/>
+              <polyline fill="none" stroke="var(--lens-gh)" stroke-width="2"
+                points="5,32 25,30 45,34 65,31 85,35 105,32 125,30 145,33 165,31 185,34 215,32"/>
+              <text x="212" y="14" font-size="9" text-anchor="end" fill="var(--lens-gh)">171 ms</text>
+            </svg>
+          </div>
+        </div>
+        <p class="verdict">Verdict: p95 improved 184 ms → 171 ms (−7%) at 2× peak load; no error-rate change. PASS.</p>
+        <ul class="tests">
+          <li>PerfSoak.orderCreate_2xPeak_30min_p95UnderBudget</li>
+          <li>PerfSoak.retryQueuePersisted_noThroughputRegression</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <section class="block" aria-label="Approval checklist">
+    <h2>Approvals — completed record</h2>
+    <ul class="appr">
+      <li><span class="tick" aria-hidden="true">✓</span><span class="appr-what">CAB approval</span><span class="appr-who">approved by <b>M. Tanaka</b> (change advisory board, CAB-2026-W24-07)</span><span class="appr-date">08 Jun 2026</span></li>
+      <li><span class="tick" aria-hidden="true">✓</span><span class="appr-what">Security review</span><span class="appr-who">signed off by <b>A. Kowalczyk</b> (application security) — no open findings</span><span class="appr-date">05 Jun 2026</span></li>
+      <li><span class="tick" aria-hidden="true">✓</span><span class="appr-what">Rollback tested</span><span class="appr-who">dry-run in staging by <b>J. Lindqvist</b>, completed in 9 minutes</span><span class="appr-date">09 Jun 2026</span></li>
+      <li><span class="tick" aria-hidden="true">✓</span><span class="appr-what">Comms sent</span><span class="appr-who">stakeholder notice by <b>P. Mehta</b> (service management) to ops &amp; support rota</span><span class="appr-date">10 Jun 2026</span></li>
+    </ul>
+  </section>
+
+  <section class="block" aria-label="Rollback plan">
+    <h2>Rollback plan — verified in staging 09 Jun</h2>
+    <ol class="rollback">
+      <li>Freeze inbound traffic at the gateway load balancer (drain mode, keep in-flight orders). <span class="est">~2 min</span></li>
+      <li>Set rollout flag <code style="font-family:var(--mono);font-size:12px">retry_queue_persisted=off</code> to fall back to the legacy queue path. <span class="est">~1 min</span></li>
+      <li>Redeploy previous release 2026.05.2 from the immutable artifact registry. <span class="est">~6 min</span></li>
+      <li>Replay any orders parked in the persisted retry store through the legacy path; verify counts match. <span class="est">~4 min</span></li>
+      <li>Unfreeze traffic, confirm health probes green for 10 minutes, notify CAB and close the record as rolled back. <span class="est">~12 min</span></li>
+    </ol>
+    <p class="rb-total">Estimated total rollback time: <b>~25 minutes</b>. No schema migrations in this release — database rollback not required.</p>
+  </section>
+
+  <section class="block" aria-label="Deployment timeline">
+    <h2>Deployment timeline — 10 Jun 2026 (CEST)</h2>
+    <ul class="tl">
+      <li><span class="t">19:00</span><span class="node" aria-hidden="true"></span><span class="what">Change window opened; traffic drain started on canary node.<small>Operator: J. Lindqvist · on-call: R. Okafor</small></span></li>
+      <li><span class="t">19:08</span><span class="node" aria-hidden="true"></span><span class="what">2026.06.1 deployed to canary (5% of traffic); smoke checks green.<small>p95 and error rate within canary thresholds</small></span></li>
+      <li><span class="t">19:22</span><span class="node" aria-hidden="true"></span><span class="what">Progressive rollout 5% → 50%; persisted retry queue enabled behind flag on canary only.<small>No queue backlog growth observed</small></span></li>
+      <li><span class="t">19:38</span><span class="node" aria-hidden="true"></span><span class="what">Rollout completed to 100% of PROD nodes; v1 status endpoint now returns 410.<small>Two known v1 callers confirmed migrated (LH-4188)</small></span></li>
+      <li><span class="t">19:47</span><span class="node" aria-hidden="true"></span><span class="what">Post-deploy verification passed; change window closed, CHG-88412 marked successful.<small>Evidence snapshot archived with the change record</small></span></li>
+    </ul>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">Assemble a single-file HTML release evidence report for change
+CHG-88412 (order-gateway 2026.06.1): the commits in scope with ticket
+references and risk class, test results by suite with expandable
+detail, the approval checklist with names and dates, the rollback
+plan, and the deployment timeline. It must print cleanly and open
+with no tooling — audit may read it in two years.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>GitHub Copilot agent mode works inside your IDE: per
+        <a href="https://docs.github.com/en/copilot/get-started/features">GitHub’s feature documentation</a>, it
+        “will determine which files to make changes to, offer code changes and terminal commands for the user's approval,
+        and iterate to remediate issues until the original task is complete” — so it can produce an artifact like this
+        directly in your repository, alongside the code it describes. What Copilot may do in your organisation is governed by
+        <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">enterprise policies</a>
+        set by your admins.</p>
+        <p>For EU organisations on GitHub Enterprise Cloud with data residency, GitHub states that when the Copilot data residency policy is enforced, “your code, prompts, and Copilot responses never leave your region during inference processing”
+        (<a href="https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/github-copilot-with-data-residency">GitHub Docs: Copilot with data residency</a>).</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by GitHub Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-copy'));
+      var text = el.textContent;
+      function done(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        setTimeout(function(){ btn.textContent = old; }, 2200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta); done(ok);
+      }
+    });
+  });
+
+  /* print: open all test-suite details so evidence is complete on paper */
+  window.addEventListener('beforeprint', function(){
+    document.querySelectorAll('details.suite').forEach(function(d){ d.dataset.wasOpen = d.open ? '1' : ''; d.open = true; });
+  });
+  window.addEventListener('afterprint', function(){
+    document.querySelectorAll('details.suite').forEach(function(d){ d.open = d.dataset.wasOpen === '1'; });
+  });
+</script>
+</body>
+</html>

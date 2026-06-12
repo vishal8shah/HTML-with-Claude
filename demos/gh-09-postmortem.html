@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INC-2417 — Post-mortem: duplicate invoices in batch-billing · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-gh);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-gh)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-gh)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:6px 0 18px}
+
+  /* incident header */
+  .inc-head{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  .inc-id{font-family:var(--mono);font-weight:700;color:var(--lens-gh);font-size:14px}
+  .sev-chip{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;
+    color:#fff;background:var(--warn);border-radius:5px;padding:3px 11px;vertical-align:2px}
+  .closed-chip{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;
+    color:#fff;background:var(--ink-soft);border-radius:5px;padding:3px 11px;vertical-align:2px}
+  .inc-meta{display:flex;flex-wrap:wrap;gap:6px 24px;margin-top:12px;font-size:13px;color:var(--ink-soft)}
+  .inc-meta b{color:var(--ink);font-weight:600}
+  .inc-meta code{font-family:var(--mono);font-size:12px;background:var(--ground);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+
+  /* impact cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media (max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{border:1px solid var(--line);border-radius:8px;padding:14px 16px;text-align:center}
+  .stat .num{font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--lens-gh)}
+  .stat .num.good{color:var(--ok)}
+  .stat .lbl{font-size:12px;color:var(--ink-soft);margin-top:3px}
+
+  /* phase chips + timeline */
+  .phase{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .phase.detect{color:var(--warn);background:var(--warn-tint);border:1px solid var(--warn)}
+  .phase.escalate{color:var(--bad);background:var(--bad-tint);border:1px solid var(--bad)}
+  .phase.mitigate{color:var(--lens-gh);background:var(--lens-gh-tint);border:1px solid var(--lens-gh)}
+  .phase.resolve{color:var(--ok);background:var(--ok-tint);border:1px solid var(--ok)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .filters button{font:600 12.5px var(--sans);color:var(--ink);background:var(--ground);border:1px solid var(--line);
+    border-radius:99px;padding:6px 14px;cursor:pointer}
+  .filters button:hover{border-color:var(--lens-gh);color:var(--lens-gh)}
+  .filters button[aria-pressed="true"]{background:var(--lens-gh);border-color:var(--lens-gh);color:#fff}
+  .filters button:focus-visible,.copy-btn:focus-visible{outline:2px solid var(--lens-gh);outline-offset:2px}
+
+  ol.timeline{list-style:none;margin:0;padding:0 0 0 26px;position:relative}
+  ol.timeline::before{content:"";position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  ol.timeline li{position:relative;padding:0 0 16px 12px}
+  ol.timeline li:last-child{padding-bottom:0}
+  ol.timeline li::before{content:"";position:absolute;left:-25px;top:5px;width:10px;height:10px;border-radius:50%;
+    background:var(--panel);border:3px solid var(--ink-soft)}
+  ol.timeline li.detect::before{border-color:var(--warn)}
+  ol.timeline li.escalate::before{border-color:var(--bad)}
+  ol.timeline li.mitigate::before{border-color:var(--lens-gh)}
+  ol.timeline li.resolve::before{border-color:var(--ok)}
+  ol.timeline .t-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  ol.timeline time{font-family:var(--mono);font-size:12.5px;font-weight:700}
+  ol.timeline p{margin:3px 0 0;font-size:13.5px}
+  ol.timeline code{font-family:var(--mono);font-size:12px;background:var(--ground);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+
+  /* logs */
+  .log{background:#1B2433;color:#D9E2EF;border-radius:8px;padding:13px 16px;font-family:var(--mono);
+    font-size:12px;line-height:1.65;white-space:pre;overflow-x:auto;margin:0 0 12px}
+  .log:last-child{margin-bottom:0}
+  .log .cap{display:block;color:#8FA1B8;margin-bottom:6px;font-style:italic}
+  .log .err{color:#FF9D94} .log .warnl{color:#FFCE85} .log .okl{color:#8FD8A0}
+
+  /* five whys */
+  ol.whys{list-style:none;margin:0;padding:0;counter-reset:why}
+  ol.whys li{counter-increment:why;position:relative;border:1px solid var(--line);border-radius:8px;
+    padding:11px 15px 11px 56px;margin:0 0 22px;font-size:13.5px;background:var(--ground)}
+  ol.whys li::before{content:"W" counter(why);position:absolute;left:14px;top:11px;font-family:var(--mono);
+    font-size:12px;font-weight:700;color:#fff;background:var(--lens-gh);border-radius:5px;padding:2px 7px}
+  ol.whys li::after{content:"";position:absolute;left:50%;bottom:-22px;width:2px;height:22px;background:var(--lens-gh)}
+  ol.whys li:last-child{margin-bottom:0;border:1px solid var(--lens-gh);background:var(--lens-gh-tint)}
+  ol.whys li:last-child::after{display:none}
+  ol.whys b{display:block;margin-bottom:2px}
+  .root-line{margin:16px 0 0;padding:11px 15px;border-left:4px solid var(--lens-gh);background:var(--lens-gh-tint);
+    border-radius:0 6px 6px 0;font-size:13.5px}
+
+  /* remediation */
+  table.rem{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.rem th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding:6px 10px 6px 0}
+  table.rem td{border-bottom:1px solid var(--line);padding:9px 10px 9px 0;vertical-align:top}
+  table.rem tr:last-child td{border-bottom:none}
+  table.rem input[type=checkbox]{width:16px;height:16px;accent-color:var(--lens-gh)}
+  .st{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .st.done{color:var(--ok);background:var(--ok-tint);border:1px solid var(--ok)}
+  .st.open{color:var(--warn);background:var(--warn-tint);border:1px solid var(--warn)}
+  table.rem .who{white-space:nowrap}
+  table.rem .due{font-family:var(--mono);font-size:12px;color:var(--ink-soft);white-space:nowrap}
+
+  .blameless{border:1px solid var(--lens-gh);background:var(--lens-gh-tint)}
+  .blameless h2{color:var(--lens-gh)}
+  .blameless p{margin:0;font-size:13.5px}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
+  .made-body a{color:var(--lens-gh)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-gh)}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+
+  @media print{
+    body{background:#fff;font-size:12px}
+    .abar,details.made,footer.colophon,.filters{display:none}
+    .wrap{max-width:none;padding:0}
+    section.block,.inc-head{border:1px solid #bbb;break-inside:avoid;margin-bottom:10px}
+    .log{white-space:pre-wrap}
+  }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>GitHub Copilot · engineering lens</span>
+  <span class="file">demos/gh-09-postmortem.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="inc-head">
+    <div><span class="inc-id">INC-2417</span> &nbsp; <span class="sev-chip">SEV-2</span> &nbsp; <span class="closed-chip">CLOSED</span></div>
+    <h1 style="margin-top:6px">Post-mortem: duplicate invoices in the overnight batch-billing run</h1>
+    <p class="fictional-note">ABC Corp — a fictional company. Every name, number, log line, and date on this page is invented for demonstration.</p>
+    <div class="inc-meta">
+      <span>Incident date <b>3 Jun 2026, 02:14–05:26 CET</b></span>
+      <span>Services affected <code>batch-billing</code> <code>order-gateway</code></span>
+      <span>Detected by <b>morning reconciliation check</b></span>
+      <span>Post-mortem owner <b>R. Okafor</b></span>
+      <span>Review held <b>9 Jun 2026</b></span>
+    </div>
+  </div>
+
+  <section class="block" aria-label="Impact summary">
+    <h2>Impact</h2>
+    <div class="stats">
+      <div class="stat"><div class="num">3h 12m</div><div class="lbl">duration (failover → all-clear)</div></div>
+      <div class="stat"><div class="num">1,842</div><div class="lbl">duplicate draft invoices created</div></div>
+      <div class="stat"><div class="num good">0</div><div class="lbl">invoices sent to customers</div></div>
+      <div class="stat"><div class="num">2</div><div class="lbl">services affected</div></div>
+    </div>
+    <p style="margin:14px 0 0;font-size:13.5px;color:var(--ink-soft)">The duplicates were caught by the scheduled
+    reconciliation check before the dispatch window opened — no customer ever saw a duplicate invoice and no
+    customer communication was required.</p>
+  </section>
+
+  <section class="block" aria-label="Timeline">
+    <h2>Timeline — <span id="count-label">12 shown</span></h2>
+    <div class="filters" role="group" aria-label="Filter timeline by phase">
+      <button data-phase="all" aria-pressed="true">All</button>
+      <button data-phase="detect" aria-pressed="false">Detect</button>
+      <button data-phase="escalate" aria-pressed="false">Escalate</button>
+      <button data-phase="mitigate" aria-pressed="false">Mitigate</button>
+      <button data-phase="resolve" aria-pressed="false">Resolve</button>
+    </div>
+    <ol class="timeline" id="timeline">
+      <li class="detect"><div class="t-head"><time>02:14</time><span class="phase detect">DETECT</span></div>
+        <p>Primary <code>orders</code> database fails over to the standby after a storage fault; application connections reset for 41 seconds.</p></li>
+      <li class="detect"><div class="t-head"><time>02:15</time><span class="phase detect">DETECT</span></div>
+        <p><code>batch-billing</code> retry wrapper re-runs the invoice-generation stage for segments 7–12 after connection errors. The retry carries no idempotency key.</p></li>
+      <li class="detect"><div class="t-head"><time>02:19</time><span class="phase detect">DETECT</span></div>
+        <p>Run resumes against the new primary; re-inserted drafts for segments 7–12 are written as new rows. Duplicates begin accumulating silently.</p></li>
+      <li class="detect"><div class="t-head"><time>02:58</time><span class="phase detect">DETECT</span></div>
+        <p>Batch run completes with status <code>SUCCESS</code>. Row-count delta vs the previous night is +4.1% — inside the alerting threshold, so no alert fires.</p></li>
+      <li class="detect"><div class="t-head"><time>04:30</time><span class="phase detect">DETECT</span></div>
+        <p>Scheduled morning reconciliation check starts, comparing draft invoices against source orders.</p></li>
+      <li class="detect"><div class="t-head"><time>04:36</time><span class="phase detect">DETECT</span></div>
+        <p>Reconciliation flags 1,842 drafts sharing an <code>order_ref</code> with an existing draft from the same run. Pager alert sent to billing on-call.</p></li>
+      <li class="escalate"><div class="t-head"><time>04:41</time><span class="phase escalate">ESCALATE</span></div>
+        <p>On-call (M. Tanaka) acknowledges, confirms the pattern is run-wide, declares SEV-2 and opens INC-2417.</p></li>
+      <li class="escalate"><div class="t-head"><time>04:48</time><span class="phase escalate">ESCALATE</span></div>
+        <p>billing-ops and order-gateway on-call (J. Lindqvist) join the bridge. Outbound invoice dispatch queue paused as a precaution — dispatch window opens at 07:00, so customer exposure is zero while paused.</p></li>
+      <li class="mitigate"><div class="t-head"><time>04:57</time><span class="phase mitigate">MITIGATE</span></div>
+        <p>Duplicates traced to the 02:15 retry of segments 7–12 following the database failover. Duplicate set fully identified by <code>(order_ref, run_id)</code> pairs.</p></li>
+      <li class="mitigate"><div class="t-head"><time>05:06</time><span class="phase mitigate">MITIGATE</span></div>
+        <p>Cleanup script dry-run against a staging copy of the run output: 1,842 drafts matched, 0 false positives. Script and match-list peer-reviewed on the bridge.</p></li>
+      <li class="mitigate"><div class="t-head"><time>05:14</time><span class="phase mitigate">MITIGATE</span></div>
+        <p>Duplicates soft-deleted in production. Reconciliation re-run completes clean: draft count matches source orders exactly.</p></li>
+      <li class="resolve"><div class="t-head"><time>05:26</time><span class="phase resolve">RESOLVE</span></div>
+        <p>Dispatch queue resumed, well before the 07:00 window. All-clear posted to the incident channel; INC-2417 moved to monitoring, closed after the 07:00 dispatch ran clean.</p></li>
+    </ol>
+  </section>
+
+  <section class="block" aria-label="Log excerpts">
+    <h2>Log excerpts (fictional)</h2>
+    <pre class="log" aria-label="batch-billing application log excerpt"><span class="cap"># batch-billing · application log · 3 Jun 2026 (fictional excerpt)</span>
+02:14:52 <span class="err">ERROR</span> db.pool        connection reset by peer (orders-primary); 38 conns dropped
+02:14:55 <span class="warnl">WARN </span> retry.wrapper  stage=invoice-generation attempt=1 failed: ConnectionError
+02:15:09 <span class="okl">INFO </span> db.pool        reconnected to orders-primary (now: standby-2, post-failover)
+02:15:10 <span class="warnl">WARN </span> retry.wrapper  stage=invoice-generation attempt=2 starting (segments 7-12)
+02:15:10 <span class="warnl">WARN </span> retry.wrapper  no idempotency key configured for stage; re-running whole stage
+02:58:41 <span class="okl">INFO </span> run.controller run 2026-06-03T02:00 finished status=SUCCESS rows=46,217 (+4.1%)</pre>
+    <pre class="log" aria-label="Reconciliation alert log excerpt"><span class="cap"># reconciliation-check · alert log · 3 Jun 2026 (fictional excerpt)</span>
+04:36:02 <span class="err">ALERT</span> recon.invoice  1,842 draft invoices share order_ref with another draft
+04:36:02 <span class="err">ALERT</span> recon.invoice  affected segments: 7,8,9,10,11,12 · run_id=2026-06-03T02:00
+04:36:03 <span class="okl">INFO </span> recon.invoice  dispatch queue state: HELD until 07:00 window — no drafts sent
+04:36:04 <span class="okl">INFO </span> pager          paging billing on-call · policy=sev-undetermined</pre>
+  </section>
+
+  <section class="block" aria-label="Root cause: five whys">
+    <h2>Root cause — five whys</h2>
+    <ol class="whys">
+      <li><b>Why were duplicate invoices created?</b> The invoice-generation stage ran twice for segments 7–12, and both runs wrote draft invoices.</li>
+      <li><b>Why did the stage run twice?</b> The retry wrapper re-ran the whole stage after the database failover, and the drafts already written before the failover were not recognised.</li>
+      <li><b>Why were the existing drafts not recognised?</b> Invoice writes carry no idempotency key, so the re-inserted rows looked like new invoices rather than retries of the same work.</li>
+      <li><b>Why was there no idempotency key?</b> The retry wrapper was added in 2025 for transient network blips; idempotent writes were noted as a follow-up (backlog item LH-731) but never scheduled.</li>
+      <li><b>Why was it never scheduled?</b> There is no engineering standard requiring retried writes to be idempotent, and LH-731 had no owner — nothing forced the gap to surface before an incident did.</li>
+    </ol>
+    <p class="root-line"><b>Root cause:</b> a stage-level retry without an idempotency key, executed across a database
+    failover — a process gap (no idempotency standard for retried writes), not an individual error.</p>
+  </section>
+
+  <section class="block" aria-label="Remediation">
+    <h2>Remediation — 3 of 5 complete</h2>
+    <table class="rem">
+      <thead><tr><th></th><th>Action</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><input type="checkbox" checked disabled aria-label="Done: idempotency key on invoice writes"></td>
+          <td>Add idempotency key <code style="font-family:var(--mono);font-size:12px">(run_id, order_ref)</code> to invoice writes; re-inserts become no-ops (<span style="font-family:var(--mono);font-size:12px">batch-billing#498</span>).</td>
+          <td class="who">M. Tanaka</td><td class="due">12 Jun 2026</td><td><span class="st done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" checked disabled aria-label="Done: retry wrapper refuses non-idempotent stages"></td>
+          <td>Change the retry wrapper to refuse automatic retry of stages not marked idempotent; such stages now halt for operator decision.</td>
+          <td class="who">J. Lindqvist</td><td class="due">10 Jun 2026</td><td><span class="st done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" checked disabled aria-label="Done: mid-run duplicate alerting"></td>
+          <td>Add mid-run duplicate-reference alerting so duplicates page on-call within minutes, not at the 04:30 reconciliation.</td>
+          <td class="who">R. Okafor</td><td class="due">11 Jun 2026</td><td><span class="st done">DONE</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" disabled aria-label="Open: failover drill during staging batch run"></td>
+          <td>Run a failure drill: trigger a database failover during a full staging batch run and verify zero duplicates end-to-end.</td>
+          <td class="who">S. de Wit</td><td class="due">03 Jul 2026</td><td><span class="st open">OPEN</span></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" disabled aria-label="Open: engineering standard for idempotent retried writes"></td>
+          <td>Add "retried writes must be idempotent" to the engineering standards and the design-review checklist; sweep existing batch jobs for the same pattern.</td>
+          <td class="who">A. Kowalczyk</td><td class="due">10 Jul 2026</td><td><span class="st open">OPEN</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block blameless" aria-label="Blameless note">
+    <h2>Blameless note</h2>
+    <p>This review examined process, not people. The retry wrapper behaved exactly as designed, the on-call response was
+    fast and careful, and the reconciliation safety net did its job — the gap was a missing standard, an unowned backlog
+    item, and an alert that only ran once a day. Those are system properties, and the remediation list above fixes the
+    system. No individual action contributed to this incident, and none of the follow-ups are directed at a person.</p>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">From this incident channel export and my timeline notes [paste], build a
+single-file HTML post-mortem for INC-2417: impact summary cards, a
+minute-by-minute timeline filterable by phase (detect/escalate/mitigate/
+resolve), log excerpts, a five-whys root cause chain, and a remediation
+checklist with owners and due dates. Blameless tone. One file — it
+becomes the archived incident record.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>GitHub Copilot agent mode works inside your IDE: per
+        <a href="https://docs.github.com/en/copilot/get-started/features">GitHub’s feature documentation</a>, it
+        “will determine which files to make changes to, offer code changes and terminal commands for the user's approval,
+        and iterate to remediate issues until the original task is complete” — so it can produce an artifact like this
+        directly in your repository, alongside the code it describes. What Copilot may do in your organisation is governed by
+        <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">enterprise policies</a>
+        set by your admins.</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by GitHub Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  /* ── phase filter with live counts ── */
+  (function(){
+    var items = Array.prototype.slice.call(document.querySelectorAll('#timeline li'));
+    var btns = Array.prototype.slice.call(document.querySelectorAll('.filters button'));
+    var label = document.getElementById('count-label');
+    function countFor(ph){
+      return items.filter(function(li){ return ph==='all' || li.classList.contains(ph); }).length;
+    }
+    btns.forEach(function(b){
+      b.textContent = b.textContent + ' (' + countFor(b.getAttribute('data-phase')) + ')';
+    });
+    function applyFilter(ph){
+      var shown = 0;
+      items.forEach(function(li){
+        var match = ph==='all' || li.classList.contains(ph);
+        li.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      btns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-phase')===ph)); });
+      label.textContent = shown + (shown===1 ? ' entry shown' : ' entries shown');
+    }
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){ applyFilter(b.getAttribute('data-phase')); });
+    });
+    applyFilter('all');
+  })();
+
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-copy'));
+      var text = el.textContent;
+      function done(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        setTimeout(function(){ btn.textContent = old; }, 2200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta); done(ok);
+      }
+    });
+  });
+</script>
+</body>
+</html>

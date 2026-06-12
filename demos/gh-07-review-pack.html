@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PR #482 — Annotated review pack · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-gh);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-gh)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-gh)}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:6px 0 18px}
+
+  /* PR header */
+  .pr-head{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  .pr-title{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px}
+  .pr-num{font-family:var(--mono);color:var(--ink-soft);font-weight:600;font-size:18px}
+  .pr-meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:12px;font-size:13px;color:var(--ink-soft)}
+  .pr-meta b{color:var(--ink);font-weight:600}
+  .pr-meta code{font-family:var(--mono);font-size:12px;background:var(--ground);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+
+  /* severity chips */
+  .sev{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .sev.blocker{color:#fff;background:var(--bad);border:1px solid var(--bad)}
+  .sev.major{color:var(--bad);background:var(--bad-tint);border:1px solid var(--bad)}
+  .sev.minor{color:var(--warn);background:var(--warn-tint);border:1px solid var(--warn)}
+  .sev.info{color:var(--lens-gh);background:var(--lens-gh-tint);border:1px solid var(--lens-gh)}
+
+  /* filter + index */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .filters button{font:600 12.5px var(--sans);color:var(--ink);background:var(--ground);border:1px solid var(--line);
+    border-radius:99px;padding:6px 14px;cursor:pointer}
+  .filters button:hover{border-color:var(--lens-gh);color:var(--lens-gh)}
+  .filters button[aria-pressed="true"]{background:var(--lens-gh);border-color:var(--lens-gh);color:#fff}
+  .filters button:focus-visible,.note-idx a:focus-visible,.copy-btn:focus-visible{outline:2px solid var(--lens-gh);outline-offset:2px}
+  ul.note-idx{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+  ul.note-idx li{display:flex;align-items:baseline;gap:10px;font-size:13.5px}
+  ul.note-idx li.dim{opacity:.38}
+  ul.note-idx a{color:var(--lens-gh);font-weight:600;text-decoration:none}
+  ul.note-idx a:hover{text-decoration:underline}
+  ul.note-idx .loc{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft)}
+
+  /* diff */
+  .diff-file{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:hidden}
+  .diff-file .fname{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:13px;font-weight:700}
+  .diff-file .fname .stat{font-weight:600;font-size:11.5px}
+  .diff-file .fname .stat .plus{color:var(--ok)} .diff-file .fname .stat .minus{color:var(--bad)}
+  .diff-scroll{overflow-x:auto}
+  table.diff{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px;line-height:1.5}
+  table.diff td{padding:1px 10px;vertical-align:top}
+  table.diff td.ln{width:34px;min-width:34px;text-align:right;color:var(--ink-soft);user-select:none;
+    border-right:1px solid var(--line);background:var(--ground);font-size:11px}
+  table.diff td.co{white-space:pre;min-width:330px;width:50%}
+  table.diff td.co.del{background:var(--bad-tint)}
+  table.diff td.ln.del{background:#F4D9D7;color:var(--bad)}
+  table.diff td.co.add{background:var(--ok-tint)}
+  table.diff td.ln.add{background:#D7E9DB;color:var(--ok)}
+  table.diff td.co.empty{background:var(--ground)}
+  table.diff tr.hl td.co,table.diff tr.hl td.ln{box-shadow:inset 0 0 0 99px rgba(14,124,107,.16)}
+  table.diff tr.code{scroll-margin-top:70px}
+
+  /* margin notes (rendered inline under their anchor line) */
+  tr.note-row td{padding:6px 10px 10px;background:var(--ground);border-top:1px dashed var(--line);border-bottom:1px dashed var(--line)}
+  .note{font-family:var(--sans);max-width:760px;margin-left:24px;background:var(--panel);border:1px solid var(--line);
+    border-left:4px solid var(--lens-gh);border-radius:8px;padding:10px 14px;position:relative;scroll-margin-top:70px}
+  .note::before{content:"";position:absolute;left:-24px;top:14px;width:20px;height:1px;background:var(--lens-gh)}
+  .note .nhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:5px;font-size:12px}
+  .note .nid{font-family:var(--mono);font-weight:700;color:var(--lens-gh)}
+  .note .nwho{color:var(--ink-soft)}
+  .note p{margin:0;font-size:13.5px}
+  .note code{font-family:var(--mono);font-size:12px;background:var(--ground);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  .note.hl{border-color:var(--lens-gh);box-shadow:0 0 0 2px var(--lens-gh-tint)}
+
+  /* summary table */
+  table.sum{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.sum th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding:6px 10px 6px 0}
+  table.sum td{border-bottom:1px solid var(--line);padding:8px 10px 8px 0;vertical-align:top}
+  table.sum tr:last-child td{border-bottom:none}
+  table.sum .loc{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
+
+  /* sign-off */
+  .signoff{border:1px solid var(--lens-gh);background:var(--lens-gh-tint)}
+  .signoff h2{color:var(--lens-gh)}
+  .signoff dl{display:grid;grid-template-columns:170px 1fr;gap:7px 16px;margin:0;font-size:13.5px}
+  .signoff dt{font-weight:700}
+  .signoff dd{margin:0}
+  .signoff ul{margin:0;padding-left:18px}
+  .signoff .archive{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--lens-gh);font-size:13px}
+  .signoff .archive code{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+  .decision-pill{display:inline-block;font-weight:800;font-size:12.5px;letter-spacing:.04em;color:#fff;background:var(--lens-gh);border-radius:5px;padding:3px 12px}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
+  .made-body a{color:var(--lens-gh)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-gh)}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+
+  @media print{
+    body{background:#fff;font-size:12px}
+    .abar,details.made,footer.colophon,.filters{display:none}
+    .wrap{max-width:none;padding:0}
+    section.block,.diff-file,.pr-head{border:1px solid #bbb;break-inside:avoid;margin-bottom:10px}
+  }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>GitHub Copilot · engineering lens</span>
+  <span class="file">demos/gh-07-review-pack.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="pr-head">
+    <div class="pr-title">
+      <h1>Fix rounding defect in discount calculation — float arithmetic → <code style="font-size:18px">Decimal</code>, half-even</h1>
+      <span class="pr-num">PR&nbsp;#482</span>
+    </div>
+    <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and line of code on this page is invented for demonstration.</p>
+    <div class="pr-meta">
+      <span>Repo <b>pricing-service</b></span>
+      <span>Author <b>M. Tanaka</b></span>
+      <span>Reviewer <b>J. Lindqvist</b></span>
+      <span>Head <code>a3f92c1</code></span>
+      <span>Ticket <b>LH-1204</b></span>
+      <span>Reviewed <b>11 Jun 2026</b></span>
+      <span>Files <b>2</b> · <span style="color:var(--ok);font-weight:700">+30</span> <span style="color:var(--bad);font-weight:700">−15</span></span>
+    </div>
+  </div>
+
+  <section class="block" aria-label="Review notes index">
+    <h2>Review notes — <span id="count-label">6 shown</span></h2>
+    <div class="filters" role="group" aria-label="Filter notes by severity">
+      <button data-sev="all" aria-pressed="true">All</button>
+      <button data-sev="blocker" aria-pressed="false">Blocker</button>
+      <button data-sev="major" aria-pressed="false">Major</button>
+      <button data-sev="minor" aria-pressed="false">Minor</button>
+      <button data-sev="info" aria-pressed="false">Info</button>
+    </div>
+    <ul class="note-idx" id="note-idx">
+      <li data-sev="blocker"><span class="sev blocker">BLOCKER</span><a href="#note-1" data-note="note-1">N1 — float still accepted at the public boundary</a><span class="loc">pricing/discount.py · L12</span></li>
+      <li data-sev="minor"><span class="sev minor">MINOR</span><a href="#note-2" data-note="note-2">N2 — add type hints on the new signature</a><span class="loc">pricing/discount.py · L10</span></li>
+      <li data-sev="info"><span class="sev info">INFO</span><a href="#note-3" data-note="note-3">N3 — half-even matches the ledger behaviour in LH-1204</a><span class="loc">pricing/discount.py · L17</span></li>
+      <li data-sev="major"><span class="sev major">MAJOR</span><a href="#note-4" data-note="note-4">N4 — qty is unvalidated; Decimal × float raises TypeError</a><span class="loc">pricing/discount.py · L22</span></li>
+      <li data-sev="major"><span class="sev major">MAJOR</span><a href="#note-5" data-note="note-5">N5 — only one rounding tie is tested</a><span class="loc">tests/test_discount.py · L21</span></li>
+      <li data-sev="minor"><span class="sev minor">MINOR</span><a href="#note-6" data-note="note-6">N6 — derive expected totals instead of magic numbers</a><span class="loc">tests/test_discount.py · L25</span></li>
+    </ul>
+  </section>
+
+  <!-- ════════ File 1: pricing/discount.py ════════ -->
+  <div class="diff-file">
+    <div class="fname">pricing/discount.py <span class="stat"><span class="plus">+19</span> <span class="minus">−9</span></span></div>
+    <div class="diff-scroll">
+    <table class="diff" aria-label="Side-by-side diff of pricing/discount.py">
+      <tbody>
+        <tr class="code"><td class="ln">1</td><td class="co">"""Discount calculation for pricing-service."""</td><td class="ln">1</td><td class="co">"""Discount calculation for pricing-service."""</td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">2</td><td class="co add">from decimal import Decimal, ROUND_HALF_EVEN</td></tr>
+        <tr class="code"><td class="ln">2</td><td class="co"> </td><td class="ln">3</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">4</td><td class="co add">TWO_PLACES = Decimal("0.01")</td></tr>
+        <tr class="code"><td class="ln del">3</td><td class="co del">TIER_RATES = {"bronze": 0.05, "silver": 0.10, "gold": 0.15}</td><td class="ln add">5</td><td class="co add">TIER_RATES = {"bronze": Decimal("0.05"), "silver": Decimal("0.10"),</td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">6</td><td class="co add">              "gold": Decimal("0.15")}</td></tr>
+        <tr class="code"><td class="ln del">4</td><td class="co del">MAX_RATE = 0.30</td><td class="ln add">7</td><td class="co add">MAX_RATE = Decimal("0.30")</td></tr>
+        <tr class="code"><td class="ln">5</td><td class="co"> </td><td class="ln">8</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">6</td><td class="co"> </td><td class="ln">9</td><td class="co"> </td></tr>
+        <tr class="code" id="row-d10"><td class="ln del">7</td><td class="co del">def apply_discount(amount, tier, promo_rate=0.0):</td><td class="ln add">10</td><td class="co add">def apply_discount(amount, tier, promo_rate=Decimal("0")):</td></tr>
+        <tr class="note-row" data-sev="minor" data-row="row-d10"><td colspan="4">
+          <div class="note" id="note-2" tabindex="-1">
+            <div class="nhead"><span class="nid">N2</span><span class="sev minor">MINOR</span><span class="nwho">J. Lindqvist · pricing/discount.py · new L10</span></div>
+            <p>Please annotate the new contract: <code>def apply_discount(amount: Decimal, tier: str, promo_rate: Decimal = Decimal("0")) -&gt; Decimal</code>. The whole point of this fix is the type discipline — make it visible to callers and to the linter.</p>
+          </div>
+        </td></tr>
+        <tr class="code"><td class="ln del">8</td><td class="co del">    """Apply tier and promo discount to an order amount."""</td><td class="ln add">11</td><td class="co add">    """Apply tier and promo discount; round half-even to cents."""</td></tr>
+        <tr class="code" id="row-d12"><td class="ln"></td><td class="co empty"></td><td class="ln add">12</td><td class="co add">    amount = Decimal(str(amount))</td></tr>
+        <tr class="note-row" data-sev="blocker" data-row="row-d12"><td colspan="4">
+          <div class="note" id="note-1" tabindex="-1">
+            <div class="nhead"><span class="nid">N1</span><span class="sev blocker">BLOCKER</span><span class="nwho">J. Lindqvist · pricing/discount.py · new L12</span></div>
+            <p><code>Decimal(str(amount))</code> silently launders float input, so callers can keep sending floats and we lose the audit trail of where they enter. Reject non-<code>Decimal</code>/non-<code>str</code> input here (raise <code>TypeError</code>) and convert at the API boundary instead — otherwise LH-1204 will recur one layer up. Condition of approval.</p>
+          </div>
+        </td></tr>
+        <tr class="code"><td class="ln del">9</td><td class="co del">    rate = TIER_RATES.get(tier, 0.0) + promo_rate</td><td class="ln add">13</td><td class="co add">    rate = TIER_RATES.get(tier, Decimal("0")) + Decimal(str(promo_rate))</td></tr>
+        <tr class="code"><td class="ln">10</td><td class="co">    if rate &gt; MAX_RATE:</td><td class="ln">14</td><td class="co">    if rate &gt; MAX_RATE:</td></tr>
+        <tr class="code"><td class="ln">11</td><td class="co">        rate = MAX_RATE</td><td class="ln">15</td><td class="co">        rate = MAX_RATE</td></tr>
+        <tr class="code"><td class="ln del">12</td><td class="co del">    discounted = amount * (1 - rate)</td><td class="ln add">16</td><td class="co add">    discounted = amount * (Decimal("1") - rate)</td></tr>
+        <tr class="code" id="row-d17"><td class="ln del">13</td><td class="co del">    return round(discounted, 2)</td><td class="ln add">17</td><td class="co add">    return discounted.quantize(TWO_PLACES, rounding=ROUND_HALF_EVEN)</td></tr>
+        <tr class="note-row" data-sev="info" data-row="row-d17"><td colspan="4">
+          <div class="note" id="note-3" tabindex="-1">
+            <div class="nhead"><span class="nid">N3</span><span class="sev info">INFO</span><span class="nwho">J. Lindqvist · pricing/discount.py · new L17</span></div>
+            <p>Good choice. Half-even is exactly what the reconciliation report in LH-1204 expects, and quantising once, at the end, avoids the compounding drift we measured (€0.01 on 0.7% of orders). No change requested.</p>
+          </div>
+        </td></tr>
+        <tr class="code"><td class="ln">14</td><td class="co"> </td><td class="ln">18</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">15</td><td class="co"> </td><td class="ln">19</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln del">16</td><td class="co del">def line_total(unit_price, qty, tier, promo_rate=0.0):</td><td class="ln add">20</td><td class="co add">def line_total(unit_price, qty, tier, promo_rate=Decimal("0")):</td></tr>
+        <tr class="code"><td class="ln">17</td><td class="co">    """Total for one order line after discount."""</td><td class="ln">21</td><td class="co">    """Total for one order line after discount."""</td></tr>
+        <tr class="code" id="row-d22"><td class="ln del">18</td><td class="co del">    subtotal = unit_price * qty</td><td class="ln add">22</td><td class="co add">    subtotal = Decimal(str(unit_price)) * qty</td></tr>
+        <tr class="note-row" data-sev="major" data-row="row-d22"><td colspan="4">
+          <div class="note" id="note-4" tabindex="-1">
+            <div class="nhead"><span class="nid">N4</span><span class="sev major">MAJOR</span><span class="nwho">J. Lindqvist · pricing/discount.py · new L22</span></div>
+            <p><code>qty</code> is unvalidated. If a caller passes a float quantity (the bulk-order endpoint does), <code>Decimal * float</code> raises <code>TypeError</code> at runtime. Coerce with <code>Decimal(qty)</code> after asserting it is an <code>int</code>, or validate and reject. Needs a test either way.</p>
+          </div>
+        </td></tr>
+        <tr class="code"><td class="ln">19</td><td class="co">    return apply_discount(subtotal, tier, promo_rate)</td><td class="ln">23</td><td class="co">    return apply_discount(subtotal, tier, promo_rate)</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <!-- ════════ File 2: tests/test_discount.py ════════ -->
+  <div class="diff-file">
+    <div class="fname">tests/test_discount.py <span class="stat"><span class="plus">+11</span> <span class="minus">−6</span></span></div>
+    <div class="diff-scroll">
+    <table class="diff" aria-label="Side-by-side diff of tests/test_discount.py">
+      <tbody>
+        <tr class="code"><td class="ln">1</td><td class="co">import pytest</td><td class="ln">1</td><td class="co">import pytest</td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">2</td><td class="co add">from decimal import Decimal</td></tr>
+        <tr class="code"><td class="ln">2</td><td class="co"> </td><td class="ln">3</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">3</td><td class="co">from pricing.discount import apply_discount, line_total</td><td class="ln">4</td><td class="co">from pricing.discount import apply_discount, line_total</td></tr>
+        <tr class="code"><td class="ln">4</td><td class="co"> </td><td class="ln">5</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">5</td><td class="co"> </td><td class="ln">6</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">6</td><td class="co">def test_gold_tier_discount():</td><td class="ln">7</td><td class="co">def test_gold_tier_discount():</td></tr>
+        <tr class="code"><td class="ln del">7</td><td class="co del">    assert apply_discount(100.00, "gold") == 85.00</td><td class="ln add">8</td><td class="co add">    assert apply_discount("100.00", "gold") == Decimal("85.00")</td></tr>
+        <tr class="code"><td class="ln">8</td><td class="co"> </td><td class="ln">9</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">9</td><td class="co"> </td><td class="ln">10</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">10</td><td class="co">def test_promo_stacks_with_tier():</td><td class="ln">11</td><td class="co">def test_promo_stacks_with_tier():</td></tr>
+        <tr class="code"><td class="ln del">11</td><td class="co del">    assert apply_discount(200.00, "silver", 0.05) == 170.00</td><td class="ln add">12</td><td class="co add">    assert apply_discount("200.00", "silver", "0.05") == Decimal("170.00")</td></tr>
+        <tr class="code"><td class="ln">12</td><td class="co"> </td><td class="ln">13</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">13</td><td class="co"> </td><td class="ln">14</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">14</td><td class="co">def test_cap_at_thirty_percent():</td><td class="ln">15</td><td class="co">def test_cap_at_thirty_percent():</td></tr>
+        <tr class="code"><td class="ln del">15</td><td class="co del">    assert apply_discount(100.00, "gold", 0.40) == 70.00</td><td class="ln add">16</td><td class="co add">    assert apply_discount("100.00", "gold", "0.40") == Decimal("70.00")</td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">17</td><td class="co add"> </td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">18</td><td class="co add"> </td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">19</td><td class="co add">def test_half_even_rounds_to_nearest_even_cent():</td></tr>
+        <tr class="code"><td class="ln"></td><td class="co empty"></td><td class="ln add">20</td><td class="co add">    # 0.25 * (1 - 0.10) = 0.225 → ties go to the even digit</td></tr>
+        <tr class="code" id="row-t21"><td class="ln"></td><td class="co empty"></td><td class="ln add">21</td><td class="co add">    assert apply_discount("0.25", "silver") == Decimal("0.22")</td></tr>
+        <tr class="note-row" data-sev="major" data-row="row-t21"><td colspan="4">
+          <div class="note" id="note-5" tabindex="-1">
+            <div class="nhead"><span class="nid">N5</span><span class="sev major">MAJOR</span><span class="nwho">J. Lindqvist · tests/test_discount.py · new L21</span></div>
+            <p>Only one tie case, and it only proves rounding <em>down</em> to even. Add the mirror case (<code>"0.35", "silver"</code> → 0.315 → <code>Decimal("0.32")</code>, rounding <em>up</em> to even) plus a parametrized sweep of x.xx5 boundaries — this test is the regression guard for the whole PR.</p>
+          </div>
+        </td></tr>
+        <tr class="code"><td class="ln">16</td><td class="co"> </td><td class="ln">22</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">17</td><td class="co"> </td><td class="ln">23</td><td class="co"> </td></tr>
+        <tr class="code"><td class="ln">18</td><td class="co">def test_line_total():</td><td class="ln">24</td><td class="co">def test_line_total():</td></tr>
+        <tr class="code" id="row-t25"><td class="ln del">19</td><td class="co del">    assert line_total(19.99, 3, "bronze") == 56.97</td><td class="ln add">25</td><td class="co add">    assert line_total("19.99", 3, "bronze") == Decimal("56.97")</td></tr>
+        <tr class="note-row" data-sev="minor" data-row="row-t25"><td colspan="4">
+          <div class="note" id="note-6" tabindex="-1">
+            <div class="nhead"><span class="nid">N6</span><span class="sev minor">MINOR</span><span class="nwho">J. Lindqvist · tests/test_discount.py · new L25</span></div>
+            <p>Magic expected value. Derive it in the test (<code>Decimal("19.99") * 3 * Decimal("0.95")</code> quantized) or add a comment showing the arithmetic, so the next reader can tell an intentional change from a regression.</p>
+          </div>
+        </td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <section class="block" aria-label="Review summary">
+    <h2>Review summary</h2>
+    <table class="sum">
+      <thead><tr><th>Note</th><th>Severity</th><th>Location</th><th>Finding</th><th>Resolution required</th></tr></thead>
+      <tbody>
+        <tr><td><b>N1</b></td><td><span class="sev blocker">BLOCKER</span></td><td class="loc">discount.py:12</td><td>Float input silently converted at calculation layer.</td><td>Before merge</td></tr>
+        <tr><td><b>N4</b></td><td><span class="sev major">MAJOR</span></td><td class="loc">discount.py:22</td><td><code>qty</code> unvalidated; float qty raises <code>TypeError</code>.</td><td>Before merge</td></tr>
+        <tr><td><b>N5</b></td><td><span class="sev major">MAJOR</span></td><td class="loc">test_discount.py:21</td><td>Tie-rounding coverage one-sided.</td><td>Before merge</td></tr>
+        <tr><td><b>N2</b></td><td><span class="sev minor">MINOR</span></td><td class="loc">discount.py:10</td><td>Missing type hints on new signature.</td><td>Follow-up PR acceptable</td></tr>
+        <tr><td><b>N6</b></td><td><span class="sev minor">MINOR</span></td><td class="loc">test_discount.py:25</td><td>Magic expected value in test.</td><td>Follow-up PR acceptable</td></tr>
+        <tr><td><b>N3</b></td><td><span class="sev info">INFO</span></td><td class="loc">discount.py:17</td><td>Half-even + single quantize confirmed correct for LH-1204.</td><td>None</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block signoff" aria-label="Four-eyes sign-off">
+    <h2>Four-eyes sign-off</h2>
+    <dl>
+      <dt>Reviewer</dt><dd>J. Lindqvist (senior engineer, pricing-service)</dd>
+      <dt>Author</dt><dd>M. Tanaka</dd>
+      <dt>Decision</dt><dd><span class="decision-pill">APPROVED WITH CONDITIONS</span></dd>
+      <dt>Conditions</dt><dd>
+        <ul>
+          <li>N1 resolved before merge: reject float input in <code>apply_discount</code>; convert at the API boundary only.</li>
+          <li>N4 resolved before merge: validate or coerce <code>qty</code>, with a covering test.</li>
+          <li>N5 resolved before merge: two-sided tie cases added to the half-even test.</li>
+          <li>N2 and N6 may land in a follow-up PR within the same sprint.</li>
+        </ul>
+      </dd>
+      <dt>Reviewed at</dt><dd>Head commit <code>a3f92c1</code> · ticket LH-1204</dd>
+      <dt>Date</dt><dd>11 Jun 2026</dd>
+    </dl>
+    <p class="archive">Attach this file to change record <code>CHG-88412</code> as review evidence.</p>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">Render the diff of PR #482 as a single self-contained HTML review pack:
+side-by-side old/new code with line numbers, my review comments as margin
+notes tagged BLOCKER/MAJOR/MINOR/INFO with a severity filter, a jump-link
+index, a summary table, and a four-eyes sign-off section I can archive
+with the change ticket. No external requests — it will be stored as
+review evidence.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>GitHub Copilot agent mode works inside your IDE: per
+        <a href="https://docs.github.com/en/copilot/get-started/features">GitHub’s feature documentation</a>, it
+        “will determine which files to make changes to, offer code changes and terminal commands for the user's approval,
+        and iterate to remediate issues until the original task is complete” — so it can produce an artifact like this
+        directly in your repository, alongside the code it describes. What Copilot may do in your organisation is governed by
+        <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">enterprise policies</a>
+        set by your admins.</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by GitHub Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  /* ── severity filter with live counts ── */
+  (function(){
+    var notes = Array.prototype.slice.call(document.querySelectorAll('tr.note-row'));
+    var idx = Array.prototype.slice.call(document.querySelectorAll('#note-idx li'));
+    var btns = Array.prototype.slice.call(document.querySelectorAll('.filters button'));
+    var label = document.getElementById('count-label');
+
+    function countFor(sev){
+      return notes.filter(function(n){ return sev==='all' || n.getAttribute('data-sev')===sev; }).length;
+    }
+    btns.forEach(function(b){
+      var sev = b.getAttribute('data-sev');
+      b.textContent = b.textContent + ' (' + countFor(sev) + ')';
+    });
+    function applyFilter(sev){
+      var shown = 0;
+      notes.forEach(function(n){
+        var match = sev==='all' || n.getAttribute('data-sev')===sev;
+        n.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      idx.forEach(function(li){
+        var match = sev==='all' || li.getAttribute('data-sev')===sev;
+        li.classList.toggle('dim', !match);
+      });
+      btns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-sev')===sev)); });
+      label.textContent = shown + (shown===1 ? ' note shown' : ' notes shown');
+    }
+    btns.forEach(function(b){
+      b.addEventListener('click', function(){ applyFilter(b.getAttribute('data-sev')); });
+    });
+    applyFilter('all');
+
+    /* ── jump links: reset filter if target hidden, then scroll ── */
+    document.querySelectorAll('#note-idx a').forEach(function(a){
+      a.addEventListener('click', function(ev){
+        ev.preventDefault();
+        var note = document.getElementById(a.getAttribute('data-note'));
+        if (note.closest('tr').style.display === 'none') applyFilter('all');
+        note.scrollIntoView({behavior:'smooth', block:'center'});
+        note.classList.add('hl');
+        var row = document.getElementById(note.closest('tr').getAttribute('data-row'));
+        if (row) row.classList.add('hl');
+        setTimeout(function(){ note.classList.remove('hl'); if (row) row.classList.remove('hl'); }, 2000);
+        note.focus({preventScroll:true});
+      });
+    });
+
+    /* ── hover link: note ⇄ anchored code line share a highlight ── */
+    notes.forEach(function(nr){
+      var note = nr.querySelector('.note');
+      var row = document.getElementById(nr.getAttribute('data-row'));
+      if (!row) return;
+      function on(){ note.classList.add('hl'); row.classList.add('hl'); }
+      function off(){ note.classList.remove('hl'); row.classList.remove('hl'); }
+      note.addEventListener('mouseenter', on); note.addEventListener('mouseleave', off);
+      row.addEventListener('mouseenter', on); row.addEventListener('mouseleave', off);
+    });
+  })();
+
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-copy'));
+      var text = el.textContent;
+      function done(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        setTimeout(function(){ btn.textContent = old; }, 2200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta); done(ok);
+      }
+    });
+  });
+</script>
+</body>
+</html>

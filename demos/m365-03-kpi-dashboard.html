@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact centre KPIs — May 2026 · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-m365)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+
+  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+
+  /* ── KPI cards ── */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  @media (max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .kpi .label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+  .kpi .value{font-size:26px;font-weight:800;letter-spacing:-.02em}
+  .kpi .value small{font-size:13px;font-weight:600;color:var(--ink-soft)}
+  .kpi .delta{font-size:12.5px;font-weight:700;margin-top:2px}
+  .kpi .delta.good{color:var(--ok)} .kpi .delta.bad{color:var(--bad)}
+  .kpi .delta .vs{font-weight:400;color:var(--ink-soft)}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  .block-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+  /* range toggle */
+  .range-toggle{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;margin-bottom:14px}
+  .range-toggle button{font:600 12.5px var(--sans);color:var(--ink-soft);background:var(--panel);border:none;padding:6px 14px;cursor:pointer}
+  .range-toggle button[aria-pressed="true"]{background:var(--lens-m365);color:#fff}
+  .range-toggle button:focus-visible{outline:2px solid var(--lens-m365);outline-offset:-2px}
+
+  .legend{display:flex;gap:18px;font-size:12px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
+  .made-body a{color:var(--lens-m365)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-m365)}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
+  <span class="file">demos/m365-03-kpi-dashboard.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="rep-head">
+    <h1>Customer operations — contact centre KPIs</h1>
+    <span class="rep-meta">Latest week ending Sun 31 May 2026 · weekly Excel export</span>
+  </div>
+  <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+
+  <div class="kpis" id="kpi-cards" aria-label="Headline KPIs for the latest week"></div>
+
+  <div class="range-toggle" role="group" aria-label="Chart range">
+    <button id="r4" aria-pressed="false">Last 4 weeks</button>
+    <button id="r8" aria-pressed="true">Last 8 weeks</button>
+  </div>
+
+  <section class="block" aria-label="Weekly contacts handled">
+    <h2>Contacts handled per week</h2>
+    <div id="line-chart"></div>
+  </section>
+
+  <section class="block" aria-label="Volume by channel">
+    <h2>Volume by channel</h2>
+    <div id="bar-chart"></div>
+    <div class="legend">
+      <span><i style="background:#3D5ADB"></i>Phone</span>
+      <span><i style="background:#3D5ADB;opacity:.55"></i>Chat</span>
+      <span><i style="background:#3D5ADB;opacity:.25"></i>Email</span>
+    </div>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">I'm pasting a table exported from Excel [paste]. Build a one-file HTML
+dashboard: four KPI cards with week-over-week change arrows, a line chart
+of weekly volume, and a bar chart by channel. Add a 4-week/8-week toggle.
+Inline SVG only — no chart libraries, no external requests.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
+        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
+        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
+        <em>enabled by default</em> and can be disabled by your admin
+        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
+        The App Builder agent in Microsoft 365 Copilot also builds lightweight interactive apps from a description
+        (<a href="https://www.microsoft.com/en-us/microsoft-365/blog/2025/10/28/microsoft-365-copilot-now-enables-you-to-build-apps-and-workflows/">Microsoft 365 blog, 28 Oct 2025</a>; availability varies by tenant, licence, and rollout).
+        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
+        file saved as <code>.html</code>, and open it in your browser.</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  // pasted from the weekly Excel export
+  var WEEKS = [
+    { week:'2026-04-12', label:'12 Apr', contacts:2510, aht:8.1, fcr:70.4, csat:4.12, phone:1480, chat:610, email:420 },
+    { week:'2026-04-19', label:'19 Apr', contacts:2500, aht:8.0, fcr:70.9, csat:4.15, phone:1455, chat:640, email:405 },
+    { week:'2026-04-26', label:'26 Apr', contacts:2576, aht:7.9, fcr:71.5, csat:4.10, phone:1510, chat:668, email:398 },
+    { week:'2026-05-03', label:'3 May',  contacts:2555, aht:7.7, fcr:72.0, csat:4.18, phone:1462, chat:701, email:392 },
+    { week:'2026-05-10', label:'10 May', contacts:2652, aht:7.6, fcr:71.7, csat:4.21, phone:1530, chat:742, email:380 },
+    { week:'2026-05-17', label:'17 May', contacts:2637, aht:7.5, fcr:72.6, csat:4.24, phone:1495, chat:768, email:374 },
+    { week:'2026-05-24', label:'24 May', contacts:2714, aht:7.4, fcr:73.1, csat:4.22, phone:1551, chat:802, email:361 },
+    { week:'2026-05-31', label:'31 May', contacts:2735, aht:7.2, fcr:73.8, csat:4.19, phone:1538, chat:845, email:352 }
+  ];
+  var COL = { phone:'#3D5ADB', chat:'rgba(61,90,219,.55)', email:'rgba(61,90,219,.25)',
+              ink:'#16202E', soft:'#4A5768', line:'#D6DEE8' };
+
+  /* ── KPI cards: latest week vs previous, computed once from the data ── */
+  (function renderKpis(){
+    var cur = WEEKS[WEEKS.length-1], prev = WEEKS[WEEKS.length-2];
+    var defs = [
+      { label:'Contacts handled', val:cur.contacts.toLocaleString('en-GB'), unit:'',
+        d:cur.contacts-prev.contacts, fmt:function(d){return (d>0?'+':'')+d;}, goodWhen:'up' },
+      { label:'Avg handle time', val:cur.aht.toFixed(1), unit:' min',
+        d:+(cur.aht-prev.aht).toFixed(1), fmt:function(d){return (d>0?'+':'')+d.toFixed(1)+' min';}, goodWhen:'down' },
+      { label:'First-contact resolution', val:cur.fcr.toFixed(1), unit:' %',
+        d:+(cur.fcr-prev.fcr).toFixed(1), fmt:function(d){return (d>0?'+':'')+d.toFixed(1)+' pt';}, goodWhen:'up' },
+      { label:'CSAT', val:cur.csat.toFixed(2), unit:' / 5',
+        d:+(cur.csat-prev.csat).toFixed(2), fmt:function(d){return (d>0?'+':'')+d.toFixed(2);}, goodWhen:'up' }
+    ];
+    var html = defs.map(function(k){
+      var improving = k.goodWhen === 'up' ? k.d >= 0 : k.d <= 0;
+      var arrow = k.d === 0 ? '◆' : (k.d > 0 ? '▲' : '▼');
+      return '<div class="kpi"><div class="label">'+k.label+'</div>' +
+        '<div class="value">'+k.val+'<small>'+k.unit+'</small></div>' +
+        '<div class="delta '+(improving?'good':'bad')+'">'+arrow+' '+k.fmt(k.d)+
+        ' <span class="vs">vs prior week</span></div></div>';
+    }).join('');
+    document.getElementById('kpi-cards').innerHTML = html;
+  })();
+
+  /* ── chart helpers (inline SVG built from the data, no libraries) ── */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs, text){
+    var el = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    if (text !== undefined) el.textContent = text;
+    return el;
+  }
+  function chartFrame(label){
+    var svg = svgEl('svg', { viewBox:'0 0 680 250', width:'100%', role:'img', 'aria-label':label });
+    svg.style.display = 'block';
+    return svg;
+  }
+  function niceMax(v){ var step = Math.pow(10, Math.floor(Math.log(v)/Math.LN10));
+    var m = v/step; var f = m<=1?1:m<=1.5?1.5:m<=2?2:m<=2.5?2.5:m<=3?3:m<=4?4:m<=5?5:10; return f*step; }
+
+  var M = { l:58, r:30, t:14, b:44 }, W = 680, H = 250;
+  var plotW = W-M.l-M.r, plotH = H-M.t-M.b;
+
+  function axes(svg, yMax, yTicks, yTitle){
+    for (var i=0;i<=yTicks;i++){
+      var v = yMax*i/yTicks, y = M.t+plotH-(plotH*i/yTicks);
+      svg.appendChild(svgEl('line',{x1:M.l,y1:y,x2:W-M.r,y2:y,stroke:COL.line,'stroke-width':1}));
+      svg.appendChild(svgEl('text',{x:M.l-8,y:y+4,'font-size':10.5,'text-anchor':'end',fill:COL.soft},
+        v.toLocaleString('en-GB')));
+    }
+    svg.appendChild(svgEl('line',{x1:M.l,y1:M.t,x2:M.l,y2:M.t+plotH,stroke:COL.soft,'stroke-width':1}));
+    svg.appendChild(svgEl('line',{x1:M.l,y1:M.t+plotH,x2:W-M.r,y2:M.t+plotH,stroke:COL.soft,'stroke-width':1}));
+    var yt = svgEl('text',{x:14,y:M.t+plotH/2,'font-size':11,fill:COL.soft,
+      transform:'rotate(-90 14 '+(M.t+plotH/2)+')','text-anchor':'middle'}, yTitle);
+    svg.appendChild(yt);
+    svg.appendChild(svgEl('text',{x:M.l+plotW/2,y:H-4,'font-size':11,fill:COL.soft,'text-anchor':'middle'},
+      'week ending (2026)'));
+  }
+
+  function renderLine(data){
+    var host = document.getElementById('line-chart'); host.innerHTML='';
+    var svg = chartFrame('Line chart of contacts handled per week, ' + data.length + ' weeks');
+    var yMax = niceMax(Math.max.apply(null, data.map(function(d){return d.contacts;})) * 1.08);
+    axes(svg, yMax, 4, 'contacts handled');
+    var pts = data.map(function(d,i){
+      var x = M.l + (data.length===1 ? plotW/2 : plotW*i/(data.length-1));
+      var y = M.t + plotH - plotH*(d.contacts/yMax);
+      return {x:x,y:y,d:d};
+    });
+    svg.appendChild(svgEl('polyline',{points:pts.map(function(p){return p.x+','+p.y;}).join(' '),
+      fill:'none',stroke:COL.phone,'stroke-width':2.5,'stroke-linejoin':'round'}));
+    pts.forEach(function(p){
+      var c = svgEl('circle',{cx:p.x,cy:p.y,r:4,fill:COL.phone});
+      c.appendChild(svgEl('title',{},p.d.label+': '+p.d.contacts.toLocaleString('en-GB')+' contacts'));
+      svg.appendChild(c);
+      svg.appendChild(svgEl('text',{x:p.x,y:M.t+plotH+16,'font-size':10.5,'text-anchor':'middle',fill:COL.ink},p.d.label));
+      svg.appendChild(svgEl('text',{x:p.x,y:p.y-9,'font-size':10,'text-anchor':'middle',fill:COL.soft},
+        p.d.contacts.toLocaleString('en-GB')));
+    });
+    host.appendChild(svg);
+  }
+
+  function renderBars(data){
+    var host = document.getElementById('bar-chart'); host.innerHTML='';
+    var svg = chartFrame('Stacked bar chart of weekly volume by channel: phone, chat, email');
+    var yMax = niceMax(Math.max.apply(null, data.map(function(d){return d.phone+d.chat+d.email;})) * 1.08);
+    axes(svg, yMax, 4, 'contacts by channel');
+    var slot = plotW/data.length, barW = Math.min(46, slot*0.55);
+    data.forEach(function(d,i){
+      var x = M.l + slot*i + (slot-barW)/2, y0 = M.t + plotH;
+      [['phone',COL.phone],['chat',COL.chat],['email',COL.email]].forEach(function(ch){
+        var h = plotH*(d[ch[0]]/yMax);
+        var r = svgEl('rect',{x:x,y:y0-h,width:barW,height:h,fill:ch[1]});
+        r.appendChild(svgEl('title',{},d.label+' · '+ch[0]+': '+d[ch[0]].toLocaleString('en-GB')));
+        svg.appendChild(r); y0 -= h;
+      });
+      svg.appendChild(svgEl('text',{x:x+barW/2,y:M.t+plotH+16,'font-size':10.5,'text-anchor':'middle',fill:COL.ink},d.label));
+    });
+    host.appendChild(svg);
+  }
+
+  /* ── 4-week / 8-week toggle: re-renders the two charts only ── */
+  var b4 = document.getElementById('r4'), b8 = document.getElementById('r8');
+  function setRange(n){
+    b4.setAttribute('aria-pressed', n===4 ? 'true' : 'false');
+    b8.setAttribute('aria-pressed', n===8 ? 'true' : 'false');
+    var slice = WEEKS.slice(-n);
+    renderLine(slice); renderBars(slice);
+  }
+  b4.addEventListener('click', function(){ setRange(4); });
+  b8.addEventListener('click', function(){ setRange(8); });
+  setRange(8);
+
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-copy'));
+      var text = el.textContent;
+      function done(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        setTimeout(function(){ btn.textContent = old; }, 2200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta); done(ok);
+      }
+    });
+  });
+</script>
+</body>
+</html>

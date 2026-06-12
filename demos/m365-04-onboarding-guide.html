@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raising a procurement request — new joiner guide · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-m365)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+
+  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  .block-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .block-head h2{margin:0}
+  .xbtns button{font:600 12px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);
+    border-radius:6px;padding:5px 11px;cursor:pointer;margin-left:6px}
+  .xbtns button:hover{border-color:var(--lens-m365);color:var(--lens-m365)}
+  .xbtns button:focus-visible{outline:2px solid var(--lens-m365);outline-offset:2px}
+
+  /* ── numbered collapsible steps ── */
+  details.step{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;background:var(--panel);overflow:hidden}
+  details.step summary{cursor:pointer;display:flex;align-items:center;gap:12px;padding:11px 14px;list-style:none;font-weight:700;font-size:14.5px}
+  details.step summary::-webkit-details-marker{display:none}
+  details.step summary:focus-visible{outline:2px solid var(--lens-m365);outline-offset:-2px}
+  details.step summary .num{flex:none;width:26px;height:26px;border-radius:50%;background:var(--lens-m365);color:#fff;
+    font:700 13px/26px var(--sans);text-align:center}
+  details.step summary .chev{margin-left:auto;color:var(--ink-soft);font-family:var(--mono);font-size:12px}
+  details.step[open] summary .chev{transform:rotate(90deg)}
+  details.step .step-body{padding:2px 14px 14px 52px;font-size:14px;color:var(--ink)}
+  .chip{display:inline-block;font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.04em;
+    color:var(--lens-m365);background:var(--lens-m365-tint);border:1px solid var(--lens-m365);border-radius:99px;
+    padding:2px 10px;white-space:nowrap;margin-left:auto}
+  details.step summary .chip{margin-left:auto}
+  details.step summary .chev{margin-left:10px}
+
+  /* ── FAQ accordion ── */
+  details.faq-item{border-bottom:1px solid var(--line)}
+  details.faq-item:last-of-type{border-bottom:none}
+  details.faq-item summary{cursor:pointer;padding:10px 4px;list-style:none;font-weight:600;font-size:14px}
+  details.faq-item summary::-webkit-details-marker{display:none}
+  details.faq-item summary::before{content:"▸ ";font-family:var(--mono);color:var(--lens-m365)}
+  details.faq-item[open] summary::before{content:"▾ "}
+  details.faq-item summary:focus-visible{outline:2px solid var(--lens-m365);outline-offset:-2px}
+  details.faq-item p{margin:2px 4px 12px 22px;font-size:13.5px;color:var(--ink-soft)}
+
+  /* ── glossary ── */
+  dl.gloss{margin:0;font-size:13.5px}
+  dl.gloss dt{font-weight:700;margin-top:10px}
+  dl.gloss dt:first-child{margin-top:0}
+  dl.gloss dfn{font-style:normal;border-bottom:1px dotted var(--lens-m365);cursor:help;color:var(--lens-m365)}
+  dl.gloss dd{margin:2px 0 0 0;color:var(--ink-soft)}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
+  .made-body a{color:var(--lens-m365)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-m365)}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
+  <span class="file">demos/m365-04-onboarding-guide.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="rep-head">
+    <h1>Raising a procurement request</h1>
+    <span class="rep-meta">New joiner guide · process owner: procurement office · v2.3, Jun 2026</span>
+  </div>
+  <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+
+  <section class="block" aria-label="Process at a glance">
+    <h2>The approval chain at a glance</h2>
+    <svg viewBox="0 0 960 400" width="100%" role="img"
+         aria-label="Swimlane flowchart with four lanes — Requester, Line manager, Procurement, Finance — showing seven steps from submitting a request to goods receipt, with a dashed rejection loop from line manager approval back to the requester">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--lens-m365)"/>
+        </marker>
+        <marker id="arr-rej" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="var(--bad)"/>
+        </marker>
+      </defs>
+
+      <!-- lanes -->
+      <rect x="0" y="10"  width="960" height="92" fill="var(--lens-m365-tint)" opacity=".45"/>
+      <rect x="0" y="102" width="960" height="92" fill="var(--panel)"/>
+      <rect x="0" y="194" width="960" height="92" fill="var(--lens-m365-tint)" opacity=".45"/>
+      <rect x="0" y="286" width="960" height="92" fill="var(--panel)"/>
+      <line x1="0" y1="102" x2="960" y2="102" stroke="var(--line)"/>
+      <line x1="0" y1="194" x2="960" y2="194" stroke="var(--line)"/>
+      <line x1="0" y1="286" x2="960" y2="286" stroke="var(--line)"/>
+      <line x1="0" y1="378" x2="960" y2="378" stroke="var(--line)"/>
+      <line x1="0" y1="10"  x2="960" y2="10"  stroke="var(--line)"/>
+      <text x="12" y="60"  font-size="12" font-weight="700" fill="var(--ink-soft)">Requester</text>
+      <text x="12" y="152" font-size="12" font-weight="700" fill="var(--ink-soft)">Line manager</text>
+      <text x="12" y="244" font-size="12" font-weight="700" fill="var(--ink-soft)">Procurement</text>
+      <text x="12" y="336" font-size="12" font-weight="700" fill="var(--ink-soft)">Finance</text>
+
+      <!-- happy path (bold, lens color) -->
+      <path d="M206 56 H282 V122" fill="none" stroke="var(--lens-m365)" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M330 148 H406 V214" fill="none" stroke="var(--lens-m365)" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M454 240 H478" fill="none" stroke="var(--lens-m365)" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M578 240 H654 V306" fill="none" stroke="var(--lens-m365)" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M702 332 H778 V266" fill="none" stroke="var(--lens-m365)" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M826 240 H902 V82" fill="none" stroke="var(--lens-m365)" stroke-width="2.5" marker-end="url(#arr)"/>
+
+      <!-- rejection loop (dashed) -->
+      <path d="M234 148 H158 V82" fill="none" stroke="var(--bad)" stroke-width="1.8"
+            stroke-dasharray="6 4" marker-end="url(#arr-rej)"/>
+      <text x="150" y="120" font-size="10.5" fill="var(--bad)" text-anchor="end">rejected —</text>
+      <text x="150" y="133" font-size="10.5" fill="var(--bad)" text-anchor="end">revise &amp; resubmit</text>
+
+      <!-- nodes: x-centers 158, 282, 406, 530, 654, 778, 902 -->
+      <g font-size="11" text-anchor="middle" fill="var(--ink)">
+        <rect x="110" y="34"  width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="158" y="53">1. Submit</text><text x="158" y="67">request (PR)</text>
+        <rect x="234" y="126" width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="282" y="145">2. Manager</text><text x="282" y="159">approval</text>
+        <rect x="358" y="218" width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="406" y="237">3. Procurement</text><text x="406" y="251">triage</text>
+        <rect x="482" y="218" width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="530" y="237">4. Vendor &amp;</text><text x="530" y="251">contract check</text>
+        <rect x="606" y="310" width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="654" y="329">5. Finance</text><text x="654" y="343">approval</text>
+        <rect x="730" y="218" width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="778" y="237">6. PO</text><text x="778" y="251">issued</text>
+        <rect x="854" y="34"  width="96" height="44" rx="6" fill="var(--panel)" stroke="var(--lens-m365)" stroke-width="1.5"/>
+        <text x="902" y="53">7. Goods</text><text x="902" y="67">receipt</text>
+      </g>
+    </svg>
+  </section>
+
+  <section class="block" aria-label="Step-by-step guide">
+    <div class="block-head">
+      <h2>Step by step</h2>
+      <span class="xbtns">
+        <button id="expand-all" type="button">Expand all</button>
+        <button id="collapse-all" type="button">Collapse all</button>
+      </span>
+    </div>
+
+    <details class="step" open>
+      <summary><span class="num">1</span>Submit the request (PR)<span class="chip">typical: same day</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>Raise a purchase requisition (PR) in the procurement portal with a description of what
+      you need, the business reason, an estimated cost, and the cost centre to charge. Anything over €5,000 needs at
+      least two vendor quotes attached. Save a draft any time; nothing is routed until you press <em>Submit</em>.</p></div>
+    </details>
+    <details class="step">
+      <summary><span class="num">2</span>Line manager approval<span class="chip">typical: 1–2 working days</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>Your line manager confirms the need is real and the cost centre is right. They can approve,
+      reject, or send the PR back with questions — a rejection returns it to you to revise and resubmit, so a clear business
+      reason up front saves a full round trip.</p></div>
+    </details>
+    <details class="step">
+      <summary><span class="num">3</span>Procurement triage<span class="chip">typical: 1 working day</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>The procurement office checks the category, value band, and whether an existing framework
+      contract already covers the purchase. Small, catalogued items are fast-tracked; anything novel or above €25,000 is
+      assigned to a category buyer for the next step.</p></div>
+    </details>
+    <details class="step">
+      <summary><span class="num">4</span>Vendor &amp; contract check<span class="chip">typical: 2–5 working days</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>The buyer verifies the vendor is on the preferred vendor list and that terms, data-protection
+      clauses, and insurance are current. A new vendor triggers onboarding and due diligence, which adds one to two weeks —
+      check the list before you choose a supplier.</p></div>
+    </details>
+    <details class="step">
+      <summary><span class="num">5</span>Finance approval<span class="chip">typical: 1–3 working days</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>Finance checks budget availability against the cost centre and the delegation-of-authority
+      matrix: your director signs off between €25,000 and €100,000, and the CFO above that. Quarter-end weeks are slower —
+      plan around them for urgent purchases.</p></div>
+    </details>
+    <details class="step">
+      <summary><span class="num">6</span>PO issued<span class="chip">typical: 1 working day</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>Procurement converts the approved PR into a purchase order (PO) and sends it to the vendor.
+      The PO number is your reference for everything that follows — vendors should never start work, and invoices are never
+      paid, without one.</p></div>
+    </details>
+    <details class="step">
+      <summary><span class="num">7</span>Goods receipt<span class="chip">typical: on delivery</span><span class="chev">▸</span></summary>
+      <div class="step-body"><p>When the goods or services arrive, confirm receipt in the portal against the PO line items.
+      This completes the three-way match (PO, receipt, invoice) that releases payment to the vendor — unconfirmed receipts
+      are the most common reason vendors chase late payment.</p></div>
+    </details>
+  </section>
+
+  <section class="block" aria-label="Frequently asked questions">
+    <h2>FAQ</h2>
+    <details class="faq-item">
+      <summary>How long does the whole process take?</summary>
+      <p>For a catalogued item from a preferred vendor: about a week end-to-end. For a new vendor or anything above
+      €25,000: plan for three to four weeks, mostly in vendor onboarding and the higher approval band.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Can I pay an invoice without a PO?</summary>
+      <p>No. ABC Corp runs a strict no-PO-no-pay policy: accounts payable will return any invoice that does not quote a
+      valid PO number, and retro-fitted POs need a written exception from the procurement office.</p>
+    </details>
+    <details class="faq-item">
+      <summary>The vendor I want is not on the preferred list. What now?</summary>
+      <p>Raise the PR anyway and flag the new vendor in the description. The buyer starts vendor onboarding in step 4 —
+      expect one to two extra weeks for due diligence, and have a preferred-list alternative ready in case it fails.</p>
+    </details>
+    <details class="faq-item">
+      <summary>When do I need quotes, and how many?</summary>
+      <p>Under €5,000: no quotes needed. €5,000–€25,000: two quotes attached to the PR. Above €25,000: three quotes, or a
+      single-source justification approved by the category buyer.</p>
+    </details>
+    <details class="faq-item">
+      <summary>How do I check where my request is?</summary>
+      <p>The PR record in the portal shows the current step and who holds it. If it has sat with one approver for more
+      than three working days, a nudge from you or your line manager is expected and entirely normal.</p>
+    </details>
+  </section>
+
+  <section class="block" aria-label="Glossary">
+    <h2>Glossary</h2>
+    <dl class="gloss">
+      <dt><dfn title="Purchase requisition: the internal request you raise asking permission to buy — nothing is ordered yet.">PR — purchase requisition</dfn></dt>
+      <dd>The internal request asking permission to buy. It carries the approvals; nothing is ordered yet.</dd>
+      <dt><dfn title="Purchase order: the legally binding order ABC Corp sends to the vendor once a PR is fully approved.">PO — purchase order</dfn></dt>
+      <dd>The binding order sent to the vendor after approval. Its number is the reference for delivery and payment.</dd>
+      <dt><dfn title="A payment control: the PO, the goods receipt, and the invoice must agree before payment is released.">Three-way match</dfn></dt>
+      <dd>The control that compares PO, goods receipt, and invoice. Payment is released only when all three agree.</dd>
+      <dt><dfn title="A vendor that has passed ABC Corp's due diligence and has current contract terms on file.">Preferred vendor</dfn></dt>
+      <dd>A supplier already vetted with terms on file. Choosing one skips onboarding and shortens step 4 substantially.</dd>
+    </dl>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">Turn this process document [paste] into an interactive single-file HTML
+guide for new joiners: numbered collapsible steps, a flowchart of the
+approval chain, expand/collapse-all buttons, an FAQ, and a short glossary.
+It must work offline as one file.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
+        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
+        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
+        <em>enabled by default</em> and can be disabled by your admin
+        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
+        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
+        file saved as <code>.html</code>, and open it in your browser.</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  /* expand / collapse all steps and FAQ items */
+  function setAll(open){
+    document.querySelectorAll('details.step, details.faq-item').forEach(function(d){ d.open = open; });
+  }
+  document.getElementById('expand-all').addEventListener('click', function(){ setAll(true); });
+  document.getElementById('collapse-all').addEventListener('click', function(){ setAll(false); });
+
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-copy'));
+      var text = el.textContent;
+      function done(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        setTimeout(function(){ btn.textContent = old; }, 2200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta); done(ok);
+      }
+    });
+  });
+</script>
+</body>
+</html>

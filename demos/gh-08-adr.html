@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-014 — Event streaming for order-status notifications · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-gh);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-gh)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-gh)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:25px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:6px 0 18px}
+
+  /* ADR header */
+  .adr-head{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  .adr-id{font-family:var(--mono);font-weight:700;color:var(--lens-gh);font-size:14px}
+  .status-chip{display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.07em;
+    color:#fff;background:var(--ok);border-radius:5px;padding:3px 11px;vertical-align:2px}
+  .adr-meta{display:flex;flex-wrap:wrap;gap:6px 24px;margin-top:12px;font-size:13px;color:var(--ink-soft)}
+  .adr-meta b{color:var(--ink);font-weight:600}
+  .adr-meta code{font-family:var(--mono);font-size:12px;background:var(--ground);border:1px solid var(--line);border-radius:4px;padding:1px 6px}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+  section.block p{margin:0 0 10px}
+  section.block p:last-child{margin-bottom:0}
+
+  /* options */
+  .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:720px){.opts{grid-template-columns:1fr}}
+  .opt{border:1px solid var(--line);border-radius:8px;padding:13px 15px;font-size:13.5px}
+  .opt h3{margin:0 0 7px;font-size:14px}
+  .opt .tag{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--ink-soft)}
+  .opt.chosen{border:2px solid var(--lens-gh);background:var(--lens-gh-tint)}
+  .opt.chosen .tag{color:var(--lens-gh)}
+  .opt p{margin:0;color:var(--ink-soft)}
+
+  /* criteria table */
+  table.crit{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.crit th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding:6px 10px 6px 0}
+  table.crit th.opt-col{text-align:center}
+  table.crit td{border-bottom:1px solid var(--line);padding:9px 10px 9px 0;vertical-align:middle}
+  table.crit td.score{text-align:center}
+  table.crit tr:last-child td{border-bottom:none}
+  table.crit tr.total td{font-weight:800;border-top:2px solid var(--ink);font-size:14px}
+  table.crit td.chosen-col{background:var(--lens-gh-tint)}
+  .wt{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+  .dots{display:inline-flex;gap:3px}
+  .dots i{width:9px;height:9px;border-radius:50%;background:var(--lens-gh);display:inline-block}
+  .dots i.off{background:transparent;border:1.5px solid var(--line)}
+  .score small{display:block;font-size:11px;color:var(--ink-soft);margin-top:2px}
+
+  /* decision */
+  .decision{border:1px solid var(--lens-gh);background:var(--lens-gh-tint)}
+  .decision h2{color:var(--lens-gh)}
+  .decision .pick{font-size:16px;font-weight:800;margin:0 0 8px}
+
+  /* consequences */
+  ul.cons{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  ul.cons li{display:flex;gap:10px;align-items:baseline;font-size:13.5px;border-left:4px solid var(--line);
+    background:var(--ground);border-radius:0 6px 6px 0;padding:8px 12px}
+  ul.cons li.pos{border-left-color:var(--ok)} ul.cons li.neg{border-left-color:var(--bad)} ul.cons li.neu{border-left-color:var(--ink-soft)}
+  .ctag{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .ctag.pos{color:var(--ok);background:var(--ok-tint);border:1px solid var(--ok)}
+  .ctag.neg{color:var(--bad);background:var(--bad-tint);border:1px solid var(--bad)}
+  .ctag.neu{color:var(--ink-soft);background:var(--panel);border:1px solid var(--line)}
+
+  /* diagram toggle */
+  .dia-toggle{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:14px}
+  .dia-toggle button{font:600 13px var(--sans);color:var(--ink);background:var(--ground);border:none;padding:8px 18px;cursor:pointer}
+  .dia-toggle button+button{border-left:1px solid var(--line)}
+  .dia-toggle button[aria-pressed="true"]{background:var(--lens-gh);color:#fff}
+  .dia-toggle button:focus-visible,.copy-btn:focus-visible{outline:2px solid var(--lens-gh);outline-offset:2px}
+  .dia-caption{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
+
+  /* decision log */
+  table.dlog{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.dlog td{border-bottom:1px solid var(--line);padding:8px 10px 8px 0}
+  table.dlog tr:last-child td{border-bottom:none}
+  table.dlog td:first-child{font-weight:700;width:140px}
+  table.dlog td:last-child{font-family:var(--mono);font-size:12px;color:var(--ink-soft);text-align:right;white-space:nowrap}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
+  .made-body a{color:var(--lens-gh)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-gh)}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+
+  @media print{
+    body{background:#fff;font-size:12px}
+    .abar,details.made,footer.colophon,.dia-toggle{display:none}
+    .wrap{max-width:none;padding:0}
+    section.block,.adr-head{border:1px solid #bbb;break-inside:avoid;margin-bottom:10px}
+  }
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>GitHub Copilot · engineering lens</span>
+  <span class="file">demos/gh-08-adr.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="adr-head">
+    <div><span class="adr-id">ADR-014</span> &nbsp; <span class="status-chip">ACCEPTED</span></div>
+    <h1 style="margin-top:6px">Event streaming for order-status notifications</h1>
+    <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+    <div class="adr-meta">
+      <span>Team <b>order-gateway</b></span>
+      <span>Accepted <b>5 Jun 2026</b></span>
+      <span>Deciders <b>R. Okafor, A. Kowalczyk, S. de Wit, P. Mehta</b></span>
+      <span>Supersedes <code>ADR-009 — Shared read replica for consumer polling</code></span>
+      <span>Programme <b>Project Lighthouse</b></span>
+    </div>
+  </div>
+
+  <section class="block" aria-label="Context">
+    <h2>Context</h2>
+    <p>Six downstream consumers (customer portal, mobile push, e-mail dispatch, CRM sync, warehouse ops, analytics)
+    currently learn about order-status changes by polling the <code>orders</code> database through the read replica
+    introduced in ADR-009. Polling now accounts for roughly 38% of read load on the replica, and because the consumers
+    poll on a 15-minute cycle, customers see status updates up to 15 minutes late — the single biggest source of
+    "where is my order" contact-centre tickets in the Lighthouse baseline study (≈ €210k/yr handling cost, fictional figure).
+    Two more consumers are planned for Q4 2026. The polling pattern does not scale and couples every consumer to the
+    orders schema; a schema migration in May required coordinated changes in five consumer teams.</p>
+  </section>
+
+  <section class="block" aria-label="Options considered">
+    <h2>Options considered</h2>
+    <div class="opts">
+      <div class="opt">
+        <h3><span class="tag">OPTION A</span> · Self-managed Kafka</h3>
+        <p>Run our own Kafka cluster on the existing container platform. Full control over configuration, retention,
+        and placement; we operate brokers, upgrades, and on-call ourselves.</p>
+      </div>
+      <div class="opt chosen">
+        <h3><span class="tag">OPTION B — CHOSEN</span> · Managed streaming service</h3>
+        <p>Use the cloud provider's managed event-streaming service (Kafka-compatible API) in our EU region.
+        Provider operates brokers; we own topics, schemas, and access control.</p>
+      </div>
+      <div class="opt">
+        <h3><span class="tag">OPTION C</span> · Extend existing message queue</h3>
+        <p>Publish status changes onto the existing task queue (point-to-point) with a fan-out exchange per consumer.
+        No new infrastructure, but the queue was not designed for replayable, ordered event streams.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" aria-label="Criteria comparison">
+    <h2>Criteria comparison <span style="font-weight:400;text-transform:none;letter-spacing:0">— 1–5 dots, higher is better · weighted totals</span></h2>
+    <table class="crit">
+      <thead>
+        <tr><th>Criterion <span class="wt">(weight)</span></th><th class="opt-col">A · Self-managed Kafka</th><th class="opt-col">B · Managed streaming</th><th class="opt-col">C · Extend queue</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Operational burden <span class="wt">(×3)</span></td>
+          <td class="score"><span class="dots" role="img" aria-label="2 out of 5"><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></span><small>own brokers + on-call</small></td>
+          <td class="score chosen-col"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>provider-operated</small></td>
+          <td class="score"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>existing platform</small></td>
+        </tr>
+        <tr>
+          <td>Latency <span class="wt">(×3)</span></td>
+          <td class="score"><span class="dots" role="img" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></span><small>sub-second</small></td>
+          <td class="score chosen-col"><span class="dots" role="img" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></span><small>sub-second</small></td>
+          <td class="score"><span class="dots" role="img" aria-label="2 out of 5"><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></span><small>no replay; backlog risk</small></td>
+        </tr>
+        <tr>
+          <td>Cost / yr <span class="wt">(×2)</span></td>
+          <td class="score"><span class="dots" role="img" aria-label="2 out of 5"><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></span><small>≈ €260k incl. ops effort</small></td>
+          <td class="score chosen-col"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>≈ €120k usage-based</small></td>
+          <td class="score"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>≈ €70k + rework later</small></td>
+        </tr>
+        <tr>
+          <td>Residency control <span class="wt">(×3)</span></td>
+          <td class="score"><span class="dots" role="img" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></span><small>fully in-platform</small></td>
+          <td class="score chosen-col"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>EU region pinning</small></td>
+          <td class="score"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>existing controls</small></td>
+        </tr>
+        <tr>
+          <td>Team familiarity <span class="wt">(×2)</span></td>
+          <td class="score"><span class="dots" role="img" aria-label="2 out of 5"><i></i><i></i><i class="off"></i><i class="off"></i><i class="off"></i></span><small>no broker ops experience</small></td>
+          <td class="score chosen-col"><span class="dots" role="img" aria-label="3 out of 5"><i></i><i></i><i></i><i class="off"></i><i class="off"></i></span><small>Kafka API known, service new</small></td>
+          <td class="score"><span class="dots" role="img" aria-label="5 out of 5"><i></i><i></i><i></i><i></i><i></i></span><small>daily use today</small></td>
+        </tr>
+        <tr>
+          <td>Exit risk <span class="wt">(×1)</span></td>
+          <td class="score"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>open protocol</small></td>
+          <td class="score chosen-col"><span class="dots" role="img" aria-label="3 out of 5"><i></i><i></i><i></i><i class="off"></i><i class="off"></i></span><small>Kafka-compatible API eases exit</small></td>
+          <td class="score"><span class="dots" role="img" aria-label="4 out of 5"><i></i><i></i><i></i><i></i><i class="off"></i></span><small>already owned</small></td>
+        </tr>
+        <tr class="total">
+          <td>Weighted total <span class="wt">(max 70)</span></td>
+          <td class="score">48</td>
+          <td class="score chosen-col" style="color:var(--lens-gh)">56</td>
+          <td class="score">52</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="block decision" aria-label="Decision">
+    <h2>Decision</h2>
+    <p class="pick">We will adopt Option B — the managed event-streaming service — for order-status notifications.</p>
+    <p>It scores highest on the criteria that drove this ADR: it removes the 15-minute polling latency and the replica
+    load without making the order-gateway team a broker-operations team, which Option A would require and which the
+    team's on-call capacity cannot absorb before the Q4 consumer onboarding. Option C is cheapest today but fails the
+    latency and replay requirements — consumers that miss messages would be back to polling for reconciliation, which
+    recreates the problem we are solving. The Kafka-compatible API keeps exit risk acceptable: producers and consumers
+    are written against the open protocol, so a later move to self-managed (Option A) remains a configuration change,
+    not a rewrite. EU region pinning satisfies the residency requirement recorded in the Lighthouse data-handling
+    guideline DHG-7 (internal, fictional).</p>
+  </section>
+
+  <section class="block" aria-label="Consequences">
+    <h2>Consequences</h2>
+    <ul class="cons">
+      <li class="pos"><span class="ctag pos">POSITIVE</span><span>Order-status latency drops from up to 15 minutes to sub-second; the two Q4 consumers subscribe to a topic instead of joining a schema-coordination round.</span></li>
+      <li class="pos"><span class="ctag pos">POSITIVE</span><span>≈ 38% of read load leaves the orders read replica; ADR-009's replica can be downsized in Q1 2027.</span></li>
+      <li class="pos"><span class="ctag pos">POSITIVE</span><span>Consumers decouple from the orders schema — events carry a versioned contract owned by order-gateway.</span></li>
+      <li class="neg"><span class="ctag neg">NEGATIVE</span><span>New external dependency with usage-based cost (≈ €120k/yr, fictional estimate); budget owner must review quarterly.</span></li>
+      <li class="neg"><span class="ctag neg">NEGATIVE</span><span>Consumers must implement idempotent, at-least-once handling — a real behaviour change for the CRM sync and e-mail dispatch teams.</span></li>
+      <li class="neu"><span class="ctag neu">NEUTRAL</span><span>The existing task queue stays for point-to-point work; this ADR covers status notifications only.</span></li>
+      <li class="neu"><span class="ctag neu">NEUTRAL</span><span>Schema registry and topic-naming conventions to be defined in a follow-up ADR before the first consumer migrates.</span></li>
+    </ul>
+  </section>
+
+  <section class="block" aria-label="Architecture diagram">
+    <h2>Architecture — current vs target</h2>
+    <div class="dia-toggle" role="group" aria-label="Toggle between current state and target state diagram">
+      <button id="btn-current" aria-pressed="true">Current state</button>
+      <button id="btn-target" aria-pressed="false">Target state</button>
+    </div>
+
+    <svg id="dia-current" viewBox="0 0 860 240" width="100%" role="img"
+         aria-label="Current state: six consumers poll the orders database read replica every 15 minutes">
+      <defs>
+        <marker id="arr1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#4A5768"/>
+        </marker>
+      </defs>
+      <!-- consumers -->
+      <g font-size="11.5" font-family="system-ui,sans-serif">
+        <g fill="#FFFFFF" stroke="#D6DEE8">
+          <rect x="20" y="12"  width="150" height="30" rx="6"/><rect x="20" y="50" width="150" height="30" rx="6"/>
+          <rect x="20" y="88"  width="150" height="30" rx="6"/><rect x="20" y="126" width="150" height="30" rx="6"/>
+          <rect x="20" y="164" width="150" height="30" rx="6"/><rect x="20" y="202" width="150" height="30" rx="6"/>
+        </g>
+        <g fill="#16202E">
+          <text x="95" y="31"  text-anchor="middle">customer portal</text><text x="95" y="69" text-anchor="middle">mobile push</text>
+          <text x="95" y="107" text-anchor="middle">e-mail dispatch</text><text x="95" y="145" text-anchor="middle">CRM sync</text>
+          <text x="95" y="183" text-anchor="middle">warehouse ops</text><text x="95" y="221" text-anchor="middle">analytics</text>
+        </g>
+        <!-- polling arrows -->
+        <g stroke="#4A5768" stroke-width="1.6" fill="none" marker-end="url(#arr1)" stroke-dasharray="5 4">
+          <path d="M170,27 C300,27 360,96 470,108"/><path d="M170,65 C300,65 360,102 470,112"/>
+          <path d="M170,103 C300,103 360,110 470,116"/><path d="M170,141 C300,141 360,126 470,122"/>
+          <path d="M170,179 C300,179 360,138 470,128"/><path d="M170,217 C300,217 360,148 470,132"/>
+        </g>
+        <text x="320" y="88" text-anchor="middle" fill="#B05A00" font-weight="700">SELECT … polling · every 15 min</text>
+        <!-- DB -->
+        <g>
+          <path d="M480,86 a55,12 0 0,0 110,0 v62 a55,12 0 0,1 -110,0 z" fill="#FFFFFF" stroke="#16202E" stroke-width="1.5"/>
+          <ellipse cx="535" cy="86" rx="55" ry="12" fill="#FFFFFF" stroke="#16202E" stroke-width="1.5"/>
+          <text x="535" y="122" text-anchor="middle" fill="#16202E" font-weight="700">orders DB</text>
+          <text x="535" y="137" text-anchor="middle" fill="#4A5768" font-size="10.5">read replica (ADR-009)</text>
+        </g>
+        <text x="700" y="100" fill="#B3261E" font-weight="700" font-size="12">≈ 38% of replica</text>
+        <text x="700" y="116" fill="#B3261E" font-weight="700" font-size="12">read load</text>
+        <text x="700" y="140" fill="#4A5768" font-size="11">up to 15 min latency</text>
+        <text x="700" y="155" fill="#4A5768" font-size="11">schema coupling × 6</text>
+      </g>
+    </svg>
+
+    <svg id="dia-target" viewBox="0 0 860 240" width="100%" role="img" style="display:none"
+         aria-label="Target state: order-gateway publishes status events to a managed event stream which fans out to six consumers; the chosen path is highlighted">
+      <defs>
+        <marker id="arr2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#0E7C6B"/>
+        </marker>
+      </defs>
+      <g font-size="11.5" font-family="system-ui,sans-serif">
+        <!-- DB -->
+        <g>
+          <path d="M20,98 a45,10 0 0,0 90,0 v44 a45,10 0 0,1 -90,0 z" fill="#FFFFFF" stroke="#16202E" stroke-width="1.5"/>
+          <ellipse cx="65" cy="98" rx="45" ry="10" fill="#FFFFFF" stroke="#16202E" stroke-width="1.5"/>
+          <text x="65" y="126" text-anchor="middle" fill="#16202E" font-weight="700">orders DB</text>
+        </g>
+        <!-- gateway -->
+        <rect x="170" y="102" width="140" height="36" rx="6" fill="#E6F4F1" stroke="#0E7C6B" stroke-width="2"/>
+        <text x="240" y="124" text-anchor="middle" fill="#0E7C6B" font-weight="700">order-gateway</text>
+        <!-- stream -->
+        <rect x="380" y="94" width="190" height="52" rx="8" fill="#E6F4F1" stroke="#0E7C6B" stroke-width="2.5"/>
+        <text x="475" y="115" text-anchor="middle" fill="#0E7C6B" font-weight="700">managed event stream</text>
+        <text x="475" y="132" text-anchor="middle" fill="#4A5768" font-size="10.5">topic: order.status.v1 · EU region</text>
+        <!-- chosen path arrows -->
+        <g stroke="#0E7C6B" stroke-width="2.4" fill="none" marker-end="url(#arr2)">
+          <line x1="110" y1="120" x2="166" y2="120"/>
+          <line x1="310" y1="120" x2="376" y2="120"/>
+          <path d="M570,104 C620,90 640,40 686,29"/><path d="M570,112 C620,104 640,72 686,66"/>
+          <path d="M570,118 C620,116 640,104 686,103"/><path d="M570,124 C620,128 640,138 686,141"/>
+          <path d="M570,130 C620,140 640,172 686,179"/><path d="M570,136 C620,152 640,206 686,216"/>
+        </g>
+        <text x="138" y="108" text-anchor="middle" fill="#4A5768" font-size="10.5">CDC</text>
+        <text x="343" y="108" text-anchor="middle" fill="#4A5768" font-size="10.5">publish</text>
+        <!-- consumers -->
+        <g fill="#FFFFFF" stroke="#D6DEE8">
+          <rect x="690" y="12"  width="150" height="30" rx="6"/><rect x="690" y="50" width="150" height="30" rx="6"/>
+          <rect x="690" y="88"  width="150" height="30" rx="6"/><rect x="690" y="126" width="150" height="30" rx="6"/>
+          <rect x="690" y="164" width="150" height="30" rx="6"/><rect x="690" y="202" width="150" height="30" rx="6"/>
+        </g>
+        <g fill="#16202E">
+          <text x="765" y="31"  text-anchor="middle">customer portal</text><text x="765" y="69" text-anchor="middle">mobile push</text>
+          <text x="765" y="107" text-anchor="middle">e-mail dispatch</text><text x="765" y="145" text-anchor="middle">CRM sync</text>
+          <text x="765" y="183" text-anchor="middle">warehouse ops</text><text x="765" y="221" text-anchor="middle">analytics</text>
+        </g>
+        <text x="475" y="170" text-anchor="middle" fill="#0E7C6B" font-weight="700" font-size="12">sub-second fan-out · subscribe, don't poll</text>
+        <text x="475" y="188" text-anchor="middle" fill="#4A5768" font-size="11">replica polling load removed · consumers decoupled from orders schema</text>
+      </g>
+    </svg>
+    <p class="dia-caption" id="dia-caption">Current state: six consumers poll the orders read replica on a 15-minute cycle.</p>
+  </section>
+
+  <section class="block" aria-label="Decision log">
+    <h2>Decision log</h2>
+    <table class="dlog">
+      <tbody>
+        <tr><td>Proposed by</td><td>R. Okafor (order-gateway tech lead) — draft circulated to consumer teams</td><td>18 May 2026</td></tr>
+        <tr><td>Reviewed by</td><td>A. Kowalczyk (platform), S. de Wit (data &amp; residency) — architecture guild session, comments resolved in <code style="font-family:var(--mono);font-size:12px">order-gateway#391</code></td><td>27 May 2026</td></tr>
+        <tr><td>Accepted by</td><td>P. Mehta (head of engineering) — ADR-009 marked superseded the same day</td><td>5 Jun 2026</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">Create ADR-014 'Event streaming for order-status notifications' as one
+HTML file: context, three options with a weighted criteria table, the
+decision and rationale, consequences (positive/negative/neutral), and an
+inline SVG diagram with a current-state/target-state toggle. It will live
+in the repo next to the code, so one self-contained file, no images.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>GitHub Copilot agent mode works inside your IDE: per
+        <a href="https://docs.github.com/en/copilot/get-started/features">GitHub’s feature documentation</a>, it
+        “will determine which files to make changes to, offer code changes and terminal commands for the user's approval,
+        and iterate to remediate issues until the original task is complete” — so it can produce an artifact like this
+        directly in your repository, alongside the code it describes. What Copilot may do in your organisation is governed by
+        <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">enterprise policies</a>
+        set by your admins.</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by GitHub Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  /* ── current/target diagram toggle ── */
+  (function(){
+    var btnCur = document.getElementById('btn-current');
+    var btnTar = document.getElementById('btn-target');
+    var diaCur = document.getElementById('dia-current');
+    var diaTar = document.getElementById('dia-target');
+    var cap = document.getElementById('dia-caption');
+    function show(target){
+      diaCur.style.display = target ? 'none' : '';
+      diaTar.style.display = target ? '' : 'none';
+      btnCur.setAttribute('aria-pressed', String(!target));
+      btnTar.setAttribute('aria-pressed', String(target));
+      cap.textContent = target
+        ? 'Target state: order-gateway publishes order.status.v1 events to the managed stream; six consumers subscribe. Chosen path highlighted.'
+        : 'Current state: six consumers poll the orders read replica on a 15-minute cycle.';
+    }
+    btnCur.addEventListener('click', function(){ show(false); });
+    btnTar.addEventListener('click', function(){ show(true); });
+  })();
+
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var el = document.getElementById(btn.getAttribute('data-copy'));
+      var text = el.textContent;
+      function done(ok){
+        var old = btn.textContent;
+        btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+        setTimeout(function(){ btn.textContent = old; }, 2200);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+      } else { fallback(); }
+      function fallback(){
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch(e){}
+        document.body.removeChild(ta); done(ok);
+      }
+    });
+  });
+</script>
+</body>
+</html>

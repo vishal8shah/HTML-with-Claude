@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Lighthouse — SteerCo decisions &amp; actions · ABC Corp (fictional)</title>
+<style>
+  :root{
+    /* ——— design tokens: edit these lines to re-skin the whole page ——— */
+    --ground:#F5F7FA; --panel:#FFFFFF; --ink:#16202E; --ink-soft:#4A5768;
+    --line:#D6DEE8; --lens-m365:#3D5ADB; --lens-m365-tint:#EBEFFC;
+    --lens-gh:#0E7C6B; --lens-gh-tint:#E6F4F1;
+    --honest:#9A5B00; --honest-tint:#FFF6E8;
+    --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
+    --bad:#B3261E; --bad-tint:#FBEAE9;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.55;font-size:15px}
+
+  /* ── shared artifact bar (identical convention across all demos) ── */
+  .abar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;
+    background:var(--panel);border-bottom:1px solid var(--line);padding:9px 20px;font-size:12.5px}
+  .abar .lens{display:inline-flex;align-items:center;gap:7px;font-weight:600;color:var(--lens-m365);white-space:nowrap}
+  .abar .lens .dot{width:9px;height:9px;border-radius:50%;background:var(--lens-m365)}
+  .abar .file{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .abar .badge{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--honest);background:var(--honest-tint);border:1px solid var(--honest);border-radius:4px;padding:2px 7px;white-space:nowrap}
+  .abar .back{margin-left:auto;color:var(--ink);text-decoration:none;font-weight:600;white-space:nowrap}
+  .abar .back:hover{color:var(--lens-m365)}
+
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
+
+  .rep-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 18px;margin-bottom:6px}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .rep-meta{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .fictional-note{font-size:12.5px;color:var(--ink-soft);margin:0 0 18px}
+
+  /* ── toolbar: owner filter + counts + copy ── */
+  .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;background:var(--panel);
+    border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+  .toolbar label{font-size:13px;font-weight:600;color:var(--ink-soft)}
+  .toolbar select{font:600 13.5px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--line);
+    border-radius:6px;padding:6px 10px;cursor:pointer}
+  .toolbar select:focus-visible,.toolbar button:focus-visible,td.chk input:focus-visible{outline:2px solid var(--lens-m365);outline-offset:2px}
+  .counts{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+  .counts b{color:var(--ink)}
+  .counts .od{color:var(--bad);font-weight:700}
+  .md-btn{font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;padding:7px 14px;cursor:pointer}
+  .md-btn:hover{background:var(--lens-m365)}
+  .local-note{flex-basis:100%;font-size:12px;color:var(--honest);margin:0}
+
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px}
+  section.block h2{font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 14px}
+
+  table.list{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.list th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding:6px 10px 6px 0}
+  table.list td{border-bottom:1px solid var(--line);padding:9px 10px 9px 0;vertical-align:top}
+  table.list tr:last-child td{border-bottom:none}
+  .id{font-family:var(--mono);font-size:12px;color:var(--ink-soft);white-space:nowrap}
+  .who{white-space:nowrap}
+  td.chk{width:30px;padding-right:6px}
+  td.chk input{width:16px;height:16px;cursor:pointer;accent-color:var(--lens-m365)}
+  td.due{white-space:nowrap;font-family:var(--mono);font-size:12px}
+  .pill{font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.05em;border-radius:4px;padding:2px 8px;white-space:nowrap}
+  .pill.open{color:var(--lens-m365);background:var(--lens-m365-tint);border:1px solid var(--lens-m365)}
+  .pill.done{color:var(--ok);background:var(--ok-tint);border:1px solid var(--ok)}
+  tr.is-done td{color:var(--ink-soft)}
+  tr.is-done .act-text{text-decoration:line-through;opacity:.6}
+  tr.is-overdue td.due{color:var(--bad);font-weight:700}
+  tr.is-overdue{background:var(--bad-tint)}
+  .od-flag{font-family:var(--mono);font-size:10px;font-weight:700;color:var(--bad);margin-left:6px;letter-spacing:.05em}
+  tr.hidden-row{display:none}
+  .empty-msg{display:none;font-size:13px;color:var(--ink-soft);font-style:italic;margin:10px 0 2px}
+
+  /* ── shared "How this was made" panel (identical convention across all demos) ── */
+  details.made{margin-top:34px;border:1px solid var(--honest);border-radius:10px;background:var(--honest-tint);overflow:hidden}
+  details.made summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14px;color:var(--honest);list-style:none}
+  details.made summary::-webkit-details-marker{display:none}
+  details.made summary::before{content:"▸ ";font-family:var(--mono)}
+  details.made[open] summary::before{content:"▾ "}
+  .made-body{padding:4px 18px 18px;display:grid;gap:16px}
+  .made-body h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--honest);margin:0 0 8px}
+  .made-body pre{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--ink)}
+  .made-body p{margin:0;font-size:13.5px;color:var(--ink)}
+  .made-body a{color:var(--lens-m365)}
+  .copy-btn{margin-top:8px;font:600 12.5px var(--sans);color:var(--panel);background:var(--ink);border:none;border-radius:6px;
+    padding:7px 14px;cursor:pointer}
+  .copy-btn:hover{background:var(--lens-m365)}
+
+  footer.colophon{margin-top:26px;font-size:12px;color:var(--ink-soft);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  footer.colophon a{color:var(--ink-soft)}
+</style>
+</head>
+<body>
+
+<header class="abar">
+  <span class="lens"><span class="dot"></span>M365 Copilot · business lens</span>
+  <span class="file">demos/m365-02-decisions-actions.html</span>
+  <span class="badge">Fictional data</span>
+  <a class="back" href="../index.html">← all artifacts</a>
+</header>
+
+<div class="wrap">
+
+  <div class="rep-head">
+    <h1>Project Lighthouse — decisions &amp; actions</h1>
+    <span class="rep-meta">Steering committee · Tue 9 Jun 2026 · overdue marked as of Fri 12 Jun 2026</span>
+  </div>
+  <p class="fictional-note">ABC Corp — a fictional company. Every name, number, and date on this page is invented for demonstration.</p>
+
+  <div class="toolbar" role="group" aria-label="Filter and export controls">
+    <label for="owner-filter">Owner</label>
+    <select id="owner-filter" aria-label="Filter decisions and actions by owner">
+      <option value="all" selected>All owners</option>
+      <option>S. de Wit</option>
+      <option>R. Okafor</option>
+      <option>A. Kowalczyk</option>
+      <option>M. Tanaka</option>
+      <option>J. Lindqvist</option>
+    </select>
+    <span class="counts" id="action-counts" aria-live="polite"></span>
+    <button class="md-btn" id="copy-md">Copy open actions as Markdown</button>
+    <p class="local-note">Edits live in this page only — nothing is saved. Copy out what you need.</p>
+  </div>
+
+  <section class="block" aria-label="Decisions">
+    <h2>Decisions</h2>
+    <table class="list" id="decisions-table">
+      <thead><tr><th>ID</th><th>Decision</th><th>Rationale</th><th>Decided by</th></tr></thead>
+      <tbody>
+        <tr data-owner="S. de Wit">
+          <td class="id">D-31</td>
+          <td>Hold the go-live date of 28 Aug; absorb the wave-2 delay inside the existing buffer.</td>
+          <td>Two weeks of buffer remain; replanning regional cut-over windows would cost more than it saves.</td>
+          <td class="who">S.&nbsp;de&nbsp;Wit</td>
+        </tr>
+        <tr data-owner="R. Okafor">
+          <td class="id">D-32</td>
+          <td>Gate every remaining wave-2 batch on a clean dedupe report before migration starts.</td>
+          <td>Duplicate customer records in batch 2 nearly corrupted billing history; the gate adds hours, not days.</td>
+          <td class="who">R.&nbsp;Okafor</td>
+        </tr>
+        <tr data-owner="A. Kowalczyk">
+          <td class="id">D-33</td>
+          <td>Move decommission sign-off from 10 Jul to 17 Jul to align with the legal review cycle.</td>
+          <td>Legal cannot review out of cycle; an unsigned decommission would block the audit trail.</td>
+          <td class="who">A.&nbsp;Kowalczyk</td>
+        </tr>
+        <tr data-owner="M. Tanaka">
+          <td class="id">D-34</td>
+          <td>Fund a temporary data-quality analyst from contingency, capped at €45,000.</td>
+          <td>Dedupe review is the bottleneck on every batch; one analyst for eight weeks protects the go-live date.</td>
+          <td class="who">M.&nbsp;Tanaka</td>
+        </tr>
+        <tr data-owner="J. Lindqvist">
+          <td class="id">D-35</td>
+          <td>Require a successful rollback dry-run in staging before wave-2 batch 4 may start.</td>
+          <td>Rollback has never been exercised end-to-end; batch 4 touches the largest customer segment.</td>
+          <td class="who">J.&nbsp;Lindqvist</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty-msg" id="decisions-empty">No decisions for this owner.</p>
+  </section>
+
+  <section class="block" aria-label="Actions">
+    <h2>Actions</h2>
+    <table class="list" id="actions-table">
+      <thead><tr><th><span class="id">Done</span></th><th>ID</th><th>Action</th><th>Owner</th><th>Due</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr data-owner="S. de Wit" data-due="2026-06-11" data-due-label="11 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-101 done"></td>
+          <td class="id">A-101</td>
+          <td><span class="act-text">Re-run the dedupe script on wave-2 batch 3 and circulate the exception report.</span></td>
+          <td class="who">S.&nbsp;de&nbsp;Wit</td>
+          <td class="due">11 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="R. Okafor" data-due="2026-06-10" data-due-label="10 Jun 2026" data-done="1">
+          <td class="chk"><input type="checkbox" checked aria-label="Mark A-102 done"></td>
+          <td class="id">A-102</td>
+          <td><span class="act-text">Confirm the night-window batching schedule with the vendor in writing.</span></td>
+          <td class="who">R.&nbsp;Okafor</td>
+          <td class="due">10 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="A. Kowalczyk" data-due="2026-06-15" data-due-label="15 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-103 done"></td>
+          <td class="id">A-103</td>
+          <td><span class="act-text">Submit the decommission plan to the change board with the revised 17 Jul date.</span></td>
+          <td class="who">A.&nbsp;Kowalczyk</td>
+          <td class="due">15 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="A. Kowalczyk" data-due="2026-06-10" data-due-label="10 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-104 done"></td>
+          <td class="id">A-104</td>
+          <td><span class="act-text">Name deputy reviewers for each decommission area before the July leave window.</span></td>
+          <td class="who">A.&nbsp;Kowalczyk</td>
+          <td class="due">10 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="R. Okafor" data-due="2026-06-16" data-due-label="16 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-105 done"></td>
+          <td class="id">A-105</td>
+          <td><span class="act-text">Schedule the wave-2 throughput test in the vendor's night window.</span></td>
+          <td class="who">R.&nbsp;Okafor</td>
+          <td class="due">16 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="M. Tanaka" data-due="2026-06-12" data-due-label="12 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-106 done"></td>
+          <td class="id">A-106</td>
+          <td><span class="act-text">Update the steering pack with the reduced two-week buffer position.</span></td>
+          <td class="who">M.&nbsp;Tanaka</td>
+          <td class="due">12 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="J. Lindqvist" data-due="2026-06-18" data-due-label="18 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-107 done"></td>
+          <td class="id">A-107</td>
+          <td><span class="act-text">Dry-run the wave-2 rollback procedure end-to-end in the staging environment.</span></td>
+          <td class="who">J.&nbsp;Lindqvist</td>
+          <td class="due">18 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="S. de Wit" data-due="2026-06-09" data-due-label="9 Jun 2026" data-done="1">
+          <td class="chk"><input type="checkbox" checked aria-label="Mark A-108 done"></td>
+          <td class="id">A-108</td>
+          <td><span class="act-text">Close the wave-1 reconciliation report and archive the evidence pack.</span></td>
+          <td class="who">S.&nbsp;de&nbsp;Wit</td>
+          <td class="due">9 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+        <tr data-owner="M. Tanaka" data-due="2026-06-19" data-due-label="19 Jun 2026">
+          <td class="chk"><input type="checkbox" aria-label="Mark A-109 done"></td>
+          <td class="id">A-109</td>
+          <td><span class="act-text">Draft the customer notification for the wave-2 migration window.</span></td>
+          <td class="who">M.&nbsp;Tanaka</td>
+          <td class="due">19 Jun 2026</td>
+          <td><span class="pill open">OPEN</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="empty-msg" id="actions-empty">No actions for this owner.</p>
+  </section>
+
+  <details class="made">
+    <summary>How this was made — the prompt, where it runs, and an honesty note</summary>
+    <div class="made-body">
+      <section>
+        <h3>The prompt</h3>
+        <pre id="prompt-text">From this meeting transcript [paste], build a single self-contained HTML
+file with two tables — decisions (id, decision, rationale) and actions
+(owner, due date, status) — filterable by owner, with checkboxes to mark
+actions done and a button that copies the open actions as a Markdown list
+I can paste into Teams. Inline CSS/JS only, one file.</pre>
+        <button class="copy-btn" data-copy="prompt-text">Copy prompt</button>
+      </section>
+      <section>
+        <h3>Where this runs</h3>
+        <p>Microsoft 365 Copilot Pages lets you create, edit, and preview runnable code directly inside a page
+        (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">“Build lightweight apps within Microsoft 365 Copilot Pages”, Microsoft Support</a>).
+        Code previews in Copilot Chat and Pages are governed by a Cloud Policy that is
+        <em>enabled by default</em> and can be disabled by your admin
+        (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn: admin configuration</a>).
+        Universal fallback that needs no special features: ask Copilot for a single HTML file, copy the code into a
+        file saved as <code>.html</code>, and open it in your browser.</p>
+      </section>
+      <section>
+        <h3>Honesty note</h3>
+        <p>This is a reference artifact, built with an AI coding agent (Claude Code) to illustrate the output format —
+        it was not generated by M365 Copilot. The prompt above is what you would give Copilot to produce something
+        like it. Results vary by model, tenant configuration, and licence: treat this as a pattern, not a guaranteed output.</p>
+      </section>
+    </div>
+  </details>
+
+  <footer class="colophon">
+    <span>Part of <a href="../index.html">“The artifact is the demo — HTML in the enterprise”</a></span>
+    <span>Single file · no external requests · works offline</span>
+  </footer>
+
+</div>
+
+<script>
+  /* shared copy-to-clipboard with fallback for file:// contexts */
+  function copyTextWithFallback(text, btn){
+    function done(ok){
+      var old = btn.textContent;
+      btn.textContent = ok ? 'Copied ✓' : 'Copy failed — select the text manually';
+      setTimeout(function(){ btn.textContent = old; }, 2200);
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch(e){}
+      document.body.removeChild(ta); done(ok);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function(){done(true);}, function(){fallback();});
+    } else { fallback(); }
+  }
+  document.querySelectorAll('.copy-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      copyTextWithFallback(document.getElementById(btn.getAttribute('data-copy')).textContent, btn);
+    });
+  });
+
+  /* ── decisions & actions interactivity (all state lives in this page only) ── */
+  var TODAY = '2026-06-12'; /* reference date for the overdue rule */
+  var actionRows   = Array.prototype.slice.call(document.querySelectorAll('#actions-table tbody tr'));
+  var decisionRows = Array.prototype.slice.call(document.querySelectorAll('#decisions-table tbody tr'));
+  var ownerFilter  = document.getElementById('owner-filter');
+  var countsEl     = document.getElementById('action-counts');
+
+  function refresh(){
+    var owner = ownerFilter.value;
+    var shown = 0, open = 0, doneCt = 0, overdue = 0;
+
+    decisionRows.forEach(function(tr){
+      tr.classList.toggle('hidden-row', owner !== 'all' && tr.getAttribute('data-owner') !== owner);
+    });
+    document.getElementById('decisions-empty').style.display =
+      decisionRows.some(function(tr){ return !tr.classList.contains('hidden-row'); }) ? 'none' : 'block';
+
+    actionRows.forEach(function(tr){
+      var isDone = tr.querySelector('input[type=checkbox]').checked;
+      var isOver = !isDone && tr.getAttribute('data-due') < TODAY;
+      var hide   = owner !== 'all' && tr.getAttribute('data-owner') !== owner;
+
+      tr.classList.toggle('is-done', isDone);
+      tr.classList.toggle('is-overdue', isOver);
+      tr.classList.toggle('hidden-row', hide);
+
+      var pill = tr.querySelector('.pill');
+      pill.textContent = isDone ? 'DONE' : 'OPEN';
+      pill.className = 'pill ' + (isDone ? 'done' : 'open');
+
+      var flag = tr.querySelector('.od-flag');
+      if (isOver && !flag) {
+        flag = document.createElement('span');
+        flag.className = 'od-flag'; flag.textContent = 'OVERDUE';
+        tr.querySelector('td.due').appendChild(flag);
+      } else if (!isOver && flag) { flag.parentNode.removeChild(flag); }
+
+      if (!hide) { shown++; if (isDone) doneCt++; else { open++; if (isOver) overdue++; } }
+    });
+    document.getElementById('actions-empty').style.display = shown ? 'none' : 'block';
+
+    countsEl.innerHTML = '<b>' + shown + '</b> shown · <b>' + open + '</b> open · <b>' + doneCt + '</b> done' +
+      (overdue ? ' · <span class="od">' + overdue + ' overdue</span>' : '');
+  }
+
+  ownerFilter.addEventListener('change', refresh);
+  actionRows.forEach(function(tr){
+    tr.querySelector('input[type=checkbox]').addEventListener('change', refresh);
+  });
+
+  /* copy the CURRENTLY FILTERED open actions as a Markdown task list */
+  document.getElementById('copy-md').addEventListener('click', function(){
+    var owner = ownerFilter.value;
+    var lines = ['**Open actions — Project Lighthouse SteerCo, 9 Jun 2026' +
+                 (owner === 'all' ? '' : ' (owner: ' + owner + ')') + '**', ''];
+    actionRows.forEach(function(tr){
+      if (tr.classList.contains('hidden-row')) return;
+      if (tr.querySelector('input[type=checkbox]').checked) return;
+      lines.push('- [ ] ' + tr.querySelector('.id').textContent + ' — ' +
+        tr.querySelector('.act-text').textContent + ' (' +
+        tr.getAttribute('data-owner') + ', due ' + tr.getAttribute('data-due-label') + ')');
+    });
+    if (lines.length === 2) lines.push('_No open actions in the current view._');
+    copyTextWithFallback(lines.join('\n'), this);
+  });
+
+  refresh();
+</script>
+</body>
+</html>
