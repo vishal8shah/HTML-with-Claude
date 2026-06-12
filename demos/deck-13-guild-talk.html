@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The artifact is the demo — HTML in the enterprise · slide deck</title>
+<title>The artifact is the demo: HTML in the enterprise · slide deck</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316202E'/><rect x='7' y='13' width='8' height='6' rx='2' fill='%233D5ADB'/><rect x='17' y='13' width='8' height='6' rx='2' fill='%230E7C6B'/></svg>">
 <style>
   :root{
     /* ——— design tokens: edit these lines to re-skin the whole page ——— */
@@ -26,8 +27,8 @@
     padding:7vh 9vw;overflow:auto}
   .slide.active{display:flex}
   .slide .kicker{font-family:var(--mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--dark-soft);margin-bottom:18px}
-  .slide .kicker.m365{color:#8FA2F2}
-  .slide .kicker.gh{color:#5FC9B5}
+  .slide .kicker.biz{color:#8FA2F2}
+  .slide .kicker.eng{color:#5FC9B5}
   .slide h1{font-size:clamp(34px,5.2vw,64px);font-weight:800;letter-spacing:-.025em;line-height:1.08;margin:0 0 18px}
   .slide h2{font-size:clamp(26px,3.6vw,44px);font-weight:800;letter-spacing:-.02em;line-height:1.12;margin:0 0 22px}
   .slide p.lede{font-size:clamp(16px,1.6vw,21px);color:var(--dark-soft);max-width:62ch;margin:0 0 10px}
@@ -36,8 +37,8 @@
   .slide ul.big li{margin-bottom:10px}
   .slide ul.big li::marker{color:#5FC9B5}
   .slide a{color:#8FA2F2}
-  .accent-m365{color:#8FA2F2}
-  .accent-gh{color:#5FC9B5}
+  .accent-biz{color:#8FA2F2}
+  .accent-eng{color:#5FC9B5}
   .mono{font-family:var(--mono)}
   .smallnote{font-size:13px;color:var(--dark-soft);margin-top:26px}
 
@@ -45,8 +46,8 @@
   @media (max-width:760px){.twin{grid-template-columns:1fr}}
   .panelbox{border:1px solid var(--dark-line);border-radius:12px;padding:22px 24px;background:rgba(255,255,255,.03)}
   .panelbox h3{margin:0 0 10px;font-size:17px}
-  .panelbox.m365{border-top:4px solid var(--lens-m365)}
-  .panelbox.gh{border-top:4px solid var(--lens-gh)}
+  .panelbox.biz{border-top:4px solid var(--lens-m365)}
+  .panelbox.eng{border-top:4px solid var(--lens-gh)}
   .panelbox ul{margin:0;padding-left:20px;font-size:15px;line-height:1.65;color:var(--dark-soft)}
   .panelbox ul li{margin-bottom:6px}
   .panelbox ul li a{color:var(--dark-text);text-decoration-color:var(--dark-line)}
@@ -61,6 +62,14 @@
   .quote{border-left:3px solid #5FC9B5;padding:6px 0 6px 20px;margin:14px 0;font-size:clamp(15px,1.5vw,19px);color:var(--dark-text);max-width:64ch}
   .quote .who{display:block;margin-top:8px;font-size:13px;color:var(--dark-soft)}
 
+  .steps{counter-reset:step;display:grid;gap:14px;margin-top:14px;max-width:760px}
+  .step{display:flex;gap:16px;align-items:baseline}
+  .step::before{counter-increment:step;content:counter(step);flex-shrink:0;width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;
+    background:rgba(255,255,255,.06);border:1px solid var(--dark-line);color:#5FC9B5}
+  .step span{font-size:clamp(15px,1.5vw,19px);color:var(--dark-soft)}
+  .step span strong{color:var(--dark-text)}
+
   /* ── hud ── */
   .hud{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:16px;
     padding:10px 18px;font-family:var(--mono);font-size:11.5px;color:var(--dark-soft);z-index:60}
@@ -71,7 +80,8 @@
   .progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--lens-m365),var(--lens-gh));z-index:60;transition:width .25s ease}
 
   /* ── speaker notes ── */
-  .notes{position:fixed;right:18px;bottom:46px;width:min(420px,86vw);background:var(--honest-tint);color:var(--ink);
+  .notes{position:fixed;right:18px;bottom:46px;width:min(380px,80vw);max-height:38vh;overflow:auto;
+    background:var(--honest-tint);color:var(--ink);
     border:1px solid var(--honest);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.55;display:none;z-index:70}
   .notes.visible{display:block}
   .notes::before{content:"Speaker notes (S to hide)";display:block;font-family:var(--mono);font-size:10px;
@@ -97,167 +107,167 @@
 <div class="deck" id="deck">
 
   <!-- 1 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Welcome. One housekeeping point that is also the whole talk: what you're looking at is a single HTML file. No PowerPoint, no export, no install. Arrow keys to move. By the end, I want you to leave wanting to change the OUTPUT FORMAT you ask your AI assistant for.">
-    <div class="kicker">ABC Corp data in this deck is fictional · AI Guild session · 2026</div>
-    <h1>The artifact is <em class="accent-gh">the demo</em> —<br>HTML in the enterprise</h1>
-    <p class="lede">What business users and engineers can really get out of <strong class="accent-m365">M365 Copilot</strong> and
-    <strong class="accent-gh">GitHub Copilot</strong> by asking for one self-contained HTML file.</p>
-    <p class="smallnote">Vishal Shah · This deck is itself a single <span class="mono">.html</span> file — press <span class="mono">→</span></p>
+  <section class="slide" data-notes="Welcome. One housekeeping point that is also the whole talk: what you are looking at is a single HTML file. No PowerPoint, no export, no install. Arrow keys to move. By the end, I want you to leave wanting to change the OUTPUT FORMAT you ask your AI assistant for.">
+    <div class="kicker">All data in this deck is fictional · AI guild session · 2026</div>
+    <h1>The artifact is <em class="accent-eng">the demo</em>:<br>HTML in the enterprise</h1>
+    <p class="lede">What <strong>LLMs</strong> can produce for <strong class="accent-biz">business users</strong> and
+    <strong class="accent-eng">engineers</strong>, one self-contained HTML file at a time.</p>
+    <p class="smallnote">Vishal Shah · This deck is itself a single <span class="mono">.html</span> file · press <span class="mono">→</span></p>
   </section>
 
   <!-- 2 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Ask the room: who has actually read a 9-page status mail to the end? AI assistants made producing text nearly free — so we produce more of it, and reading became the bottleneck. The constraint moved from writing to reading.">
+  <section class="slide" data-notes="Ask the room: who has actually read a 9-page status mail to the end? AI assistants made producing text nearly free, so we produce more of it, and reading became the bottleneck. The constraint moved from writing to reading.">
     <div class="kicker">The problem</div>
     <h2>AI made <em>writing</em> cheap.<br>Reading is now the bottleneck.</h2>
     <ul class="big">
-      <li>Copilot can draft a 9-page status update in seconds — and nobody reads page 4.</li>
+      <li>An LLM drafts a 9-page status update in seconds. Nobody reads page 4.</li>
       <li>Long documents flatten structure: timelines, diffs, dashboards and decision tables all become paragraphs.</li>
       <li>The result is familiar: we skim, we miss things, we ask for "a quick summary" of the summary.</li>
     </ul>
   </section>
 
   <!-- 3 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="The idea is not mine in origin — credit on the closing slide. The enterprise twist IS new: both Copilots your organisation already licenses can emit a single HTML file, and a single HTML file is the most governable document format we have: it's text, it diffs, it attaches, it opens everywhere.">
+  <section class="slide" data-notes="The idea is not mine in origin, credit on the closing slide. The twist: ask for a different output format. One HTML file holds the timeline as a timeline, the diff as a diff. And this works in ANY capable model: GPT, Claude, Gemini, Grok, DeepSeek, or whatever assistant your company provides. The capability belongs to LLMs, not to one product.">
     <div class="kicker">The idea</div>
-    <h2>Ask for <em class="accent-gh">one HTML file</em> instead of a wall of text.</h2>
+    <h2>Ask for <em class="accent-eng">one HTML file</em> instead of a wall of text.</h2>
     <p class="lede">A single <span class="mono">.html</span> file can hold the timeline <strong>as a timeline</strong>, the diff <strong>as a diff</strong>,
-    the dashboard <strong>as a dashboard</strong> — interactive, printable, and openable on any machine your company owns.</p>
-    <p class="lede">Everything in this talk is built on tools ABC Corp-like enterprises already run:
-    <strong class="accent-m365">M365 Copilot</strong> for business users, <strong class="accent-gh">GitHub Copilot</strong> for engineers.</p>
+    the dashboard <strong>as a dashboard</strong>. Interactive, printable, and openable on any machine your company owns.</p>
+    <p class="lede">This is not a product feature. It works in <strong>any capable LLM</strong>: GPT, Claude, Gemini,
+    Grok, DeepSeek, or the assistant your enterprise already provides.</p>
   </section>
 
   <!-- 4 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="These six are first-principles arguments, not vendor claims — that's deliberate and I'll keep that distinction sharp all talk. For a regulated enterprise the killer ones are 4, 5 and 6: diffable in git, attachable to a change ticket as evidence, and working air-gapped.">
-    <div class="kicker">Why HTML — argument, not vendor claim</div>
+  <section class="slide" data-notes="These six are first-principles arguments, not vendor claims. That distinction stays sharp all talk. For a regulated enterprise the killer ones are 4, 5 and 6: diffable in git, attachable to a change ticket as evidence, and working air-gapped.">
+    <div class="kicker">Why HTML: argument, not vendor claim</div>
     <h2>Six properties regulated enterprises happen to love</h2>
     <ul class="big">
-      <li><strong>One file</strong> — self-contained, no dependencies to break or to security-review.</li>
-      <li><strong>Opens everywhere</strong> — every locked-down laptop already has a browser.</li>
-      <li><strong>No new licences</strong> — no extra tooling, viewers, or runtimes to procure.</li>
-      <li><strong>Plain text under the hood</strong> — versionable and diffable in git like any code.</li>
-      <li><strong>Attachable</strong> — drops into a change ticket, audit pack, or mail as-is.</li>
-      <li><strong>Works air-gapped</strong> — zero external requests, by construction.</li>
+      <li><strong>One file.</strong> Self-contained, no dependencies to break or to security-review.</li>
+      <li><strong>Opens everywhere.</strong> Every locked-down laptop already has a browser.</li>
+      <li><strong>No new licences.</strong> No extra tooling, viewers, or runtimes to procure.</li>
+      <li><strong>Plain text under the hood.</strong> Versionable and diffable in git like any code.</li>
+      <li><strong>Attachable.</strong> Drops into a change ticket, audit pack, or mail as-is.</li>
+      <li><strong>Works air-gapped.</strong> Zero external requests, by construction.</li>
     </ul>
   </section>
 
   <!-- 5 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Now the part that must be precise. Microsoft's own documentation: Copilot Pages supports building lightweight apps — create, edit, and PREVIEW runnable code inside a page. And the admin Cloud Policy for code previews is ENABLED BY DEFAULT — your admins can turn it off, which is exactly how enterprise governance should work. And if previews are off: copy the code, save as .html, open. That fallback needs no feature at all.">
-    <div class="kicker m365">Lens 1 · M365 Copilot · business users</div>
-    <h2>This is documented, not hoped for</h2>
-    <div class="quote">Copilot Pages "lets you create, edit, and preview runnable code directly inside a page."
-      <span class="who">Microsoft Support — "Build lightweight apps within Microsoft 365 Copilot Pages"</span></div>
-    <div class="quote">Code previews in Copilot Chat &amp; Pages: Cloud Policy, <strong>enabled by default</strong>, admin-controllable.
-      <span class="who">Microsoft Learn — Copilot Pages admin configuration</span></div>
-    <p class="lede">Universal fallback in any tenant: ask for one HTML file → copy → save as <span class="mono">.html</span> → open.</p>
+  <section class="slide" data-notes="The workflow for business users is four steps and needs no IDE and no special features. Important honesty point, made out loud: the gallery examples were built with an LLM agent over several iterations. They are the bar to aim for. Your first answer will be simpler. Iterate. Similar, not identical, and that is fine.">
+    <div class="kicker biz">Lens 1 · LLMs for business users</div>
+    <h2>The whole workflow is four steps</h2>
+    <div class="steps">
+      <div class="step"><span><strong>Write a brief</strong>, or steal one from the gallery: every artifact carries its own.</span></div>
+      <div class="step"><span><strong>Paste it into your assistant</strong> and iterate a few rounds on content and layout.</span></div>
+      <div class="step"><span><strong>Save the answer</strong> as a <span class="mono">.html</span> file.</span></div>
+      <div class="step"><span><strong>Open it in a browser.</strong> Send the file instead of the wall of text.</span></div>
+    </div>
+    <p class="smallnote">Expect similar output to the gallery, not identical. The examples are the bar to aim for, reached by iterating.</p>
   </section>
 
   <!-- 6 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Six working examples, all on the gallery page, all fictional ABC Corp data, all single files. Pick the status one-pager if you only try one: it replaces the Monday status mail nobody reads. Each artifact ships with the exact prompt used, so people can reproduce it in their own tenant.">
-    <div class="kicker m365">Lens 1 · the artifacts</div>
+  <section class="slide" data-notes="Six working examples, all on the gallery page, all fictional ABC Corp data, all single files. Pick the status one-pager if you only try one: it replaces the Monday status mail nobody reads. Each artifact ships with the exact brief used, so people can reproduce it with their own model.">
+    <div class="kicker biz">Lens 1 · the artifacts</div>
     <h2>Six everyday documents, upgraded</h2>
     <div class="twin">
-      <div class="panelbox m365">
+      <div class="panelbox biz">
         <ul>
-          <li><a href="m365-01-status-onepager.html">Weekly status one-pager</a> — RAG, milestones, budget bar</li>
-          <li><a href="m365-02-decisions-actions.html">Decisions &amp; actions tracker</a> — filter by owner, copy out as Markdown</li>
-          <li><a href="m365-03-kpi-dashboard.html">KPI mini-dashboard</a> — from a pasted Excel table</li>
+          <li><a href="biz-01-status-onepager.html">Weekly status one-pager</a>: RAG, milestones, budget bar</li>
+          <li><a href="biz-02-decisions-actions.html">Decisions and actions tracker</a>: filter by owner, copy out as Markdown</li>
+          <li><a href="biz-03-kpi-dashboard.html">KPI mini-dashboard</a>: from a pasted spreadsheet</li>
         </ul>
       </div>
-      <div class="panelbox m365">
+      <div class="panelbox biz">
         <ul>
-          <li><a href="m365-04-onboarding-guide.html">Process guide</a> — collapsible steps + approval flowchart</li>
-          <li><a href="m365-05-raid-board.html">RAID board</a> — work it live, export before closing</li>
-          <li><a href="m365-06-townhall-onepager.html">Town-hall one-pager</a> — role-switching "what it means for you"</li>
+          <li><a href="biz-04-onboarding-guide.html">Process guide</a>: collapsible steps plus approval flowchart</li>
+          <li><a href="biz-05-raid-board.html">RAID board</a>: work it live, export before closing</li>
+          <li><a href="biz-06-townhall-onepager.html">Town-hall one-pager</a>: role-switching "what it means for you"</li>
         </ul>
       </div>
     </div>
-    <p class="smallnote">Every artifact contains its own prompt — open one and scroll to "How this was made".</p>
+    <p class="smallnote">Every artifact contains its own brief. Open one and scroll to "How this was made".</p>
   </section>
 
   <!-- 7 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Engineering lens. Agent mode wording is verbatim from GitHub's feature docs — it decides which files to change, proposes edits and commands FOR YOUR APPROVAL, iterates. So the same task that changes code can also emit the evidence artifact next to it. And governance: enterprise policies control what Copilot may do; EU data residency is quotable verbatim; no-training and indemnification come from GitHub's Trust Center — note the indemnity condition: duplicate-detection filter set to Block.">
-    <div class="kicker gh">Lens 2 · GitHub Copilot · regulated engineering</div>
-    <h2>The same move works under governance</h2>
-    <div class="quote">Agent mode "will determine which files to make changes to, offer code changes and terminal commands
-      for the user's approval, and iterate to remediate issues until the original task is complete."
-      <span class="who">GitHub Docs — Copilot features</span></div>
-    <p class="lede">So alongside the code change, the agent can write the <strong>review pack, the ADR, the post-mortem, the
-    evidence report</strong> — as files in the repo, under the same enterprise policies as everything else.</p>
+  <section class="slide" data-notes="Engineering lens. An LLM coding agent already works in your repo: it explores code, edits files, runs tests. The unlock is realising the same run that changes the code can WRITE THE EVIDENCE next to it: the review pack, the ADR, the post-mortem, the release report. As files in git, under the same review flow as everything else.">
+    <div class="kicker eng">Lens 2 · LLMs for engineers in regulated environments</div>
+    <h2>Let the agent write the evidence next to the code</h2>
+    <p class="lede">An LLM coding agent works in your repository. The same run that changes the code can also produce
+    the <strong>review pack, the ADR, the post-mortem, the release evidence</strong>: as files in the repo, reviewed
+    and versioned like everything else.</p>
+    <p class="lede">Regulated teams live on evidence. HTML evidence <strong>diffs like code, attaches to the change
+    ticket, and still opens in two years</strong> with no tooling.</p>
   </section>
 
   <!-- 8 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Six engineering artifacts. The theme is auditability: these are the documents regulators and internal audit actually ask for, and HTML is the format that's still openable in two years with no tooling. The review pack and release evidence report are my favourites to show auditors.">
-    <div class="kicker gh">Lens 2 · the artifacts</div>
+  <section class="slide" data-notes="Six engineering artifacts. The theme is auditability: these are the documents regulators and internal audit actually ask for, and HTML is the format that is still openable in two years with no tooling. The review pack and release evidence report are my favourites to show auditors.">
+    <div class="kicker eng">Lens 2 · the artifacts</div>
     <h2>Engineering documents that survive an audit</h2>
     <div class="twin">
-      <div class="panelbox gh">
+      <div class="panelbox eng">
         <ul>
-          <li><a href="gh-07-review-pack.html">Annotated review pack</a> — severity-tagged notes, four-eyes sign-off</li>
-          <li><a href="gh-08-adr.html">Architecture Decision Record</a> — options table + current/target diagram</li>
-          <li><a href="gh-09-postmortem.html">Incident post-mortem</a> — filterable timeline, five whys</li>
+          <li><a href="eng-07-review-pack.html">Annotated review pack</a>: severity-tagged notes, four-eyes sign-off</li>
+          <li><a href="eng-08-adr.html">Architecture Decision Record</a>: options table plus current/target diagram</li>
+          <li><a href="eng-09-postmortem.html">Incident post-mortem</a>: filterable timeline, five whys</li>
         </ul>
       </div>
-      <div class="panelbox gh">
+      <div class="panelbox eng">
         <ul>
-          <li><a href="gh-10-release-evidence.html">Release evidence report</a> — tests, approvals, rollback plan</li>
-          <li><a href="gh-11-dependency-report.html">Dependency risk report</a> — sortable, licence flags</li>
-          <li><a href="gh-12-module-map.html">Legacy module map</a> — clickable boxes-and-arrows</li>
+          <li><a href="eng-10-release-evidence.html">Release evidence report</a>: tests, approvals, rollback plan</li>
+          <li><a href="eng-11-dependency-report.html">Dependency risk report</a>: sortable, licence flags</li>
+          <li><a href="eng-12-module-map.html">Legacy module map</a>: clickable boxes and arrows</li>
         </ul>
       </div>
     </div>
   </section>
 
   <!-- 9 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="The governance slide — every row has a primary source, linked. This is the slide that makes risk and compliance colleagues relax: capability is admin-controllable on the Microsoft side; on the GitHub side you get policy controls, regional inference, contractual no-training, and conditional indemnification. Don't paraphrase these in your own decks — quote and link them.">
-    <div class="kicker">Governance · every row has a primary source</div>
-    <h2>What the vendors actually commit to</h2>
+  <section class="slide" data-notes="A footnote, not the headline: nothing in this talk depends on a vendor. But the inevitable question is 'can our enterprise tools do this?' and the answer is documented. Quote and link these rather than paraphrasing them in your own decks. Note the indemnity condition on the last row: duplicate-detection filter set to Block.">
+    <div class="kicker">Footnote · inside enterprise tools (every row has a primary source)</div>
+    <h2>"Can our tools do this?" Documented.</h2>
     <table class="facts">
-      <tr><th>Claim</th><th>Source</th></tr>
-      <tr><td>Copilot Pages: create, edit &amp; preview runnable code ("lightweight apps")</td>
-          <td class="src"><a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">Microsoft Support</a></td></tr>
+      <tr><th>Fact</th><th>Source</th></tr>
+      <tr><td>Microsoft 365 Copilot Pages: create, edit and preview runnable code ("lightweight apps")</td>
+          <td class="src"><a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc" target="_blank" rel="noopener">Microsoft Support</a></td></tr>
       <tr><td>Code previews: Cloud Policy, default enabled, admin can disable</td>
-          <td class="src"><a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn</a></td></tr>
-      <tr><td>App Builder agent builds lightweight apps from a description</td>
-          <td class="src"><a href="https://www.microsoft.com/en-us/microsoft-365/blog/2025/10/28/microsoft-365-copilot-now-enables-you-to-build-apps-and-workflows/">Microsoft 365 blog</a></td></tr>
-      <tr><td>GitHub Copilot features are governed by enterprise policies</td>
-          <td class="src"><a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">GitHub Docs</a></td></tr>
+          <td class="src"><a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration" target="_blank" rel="noopener">Microsoft Learn</a></td></tr>
+      <tr><td>GitHub Copilot agent mode edits files under enterprise policies</td>
+          <td class="src"><a href="https://docs.github.com/en/copilot/get-started/features" target="_blank" rel="noopener">GitHub Docs</a> · <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies" target="_blank" rel="noopener">policies</a></td></tr>
       <tr><td>EU data residency: "code, prompts, and Copilot responses never leave your region during inference processing"</td>
-          <td class="src"><a href="https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/github-copilot-with-data-residency">GitHub Docs</a></td></tr>
-      <tr><td>Business/Enterprise data not used to train models; IP indemnification (with duplicate-detection filter set to "Block")</td>
-          <td class="src"><a href="https://copilot.github.trust.page/faq">GitHub Copilot Trust Center</a></td></tr>
+          <td class="src"><a href="https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/github-copilot-with-data-residency" target="_blank" rel="noopener">GitHub Docs</a></td></tr>
+      <tr><td>Business/Enterprise data not used to train models; IP indemnification (duplicate-detection filter set to "Block")</td>
+          <td class="src"><a href="https://copilot.github.trust.page/faq" target="_blank" rel="noopener">GitHub Copilot Trust Center</a></td></tr>
     </table>
   </section>
 
   <!-- 10 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="This slide is why you can trust the rest of the talk. The examples were built with an AI coding agent to a quality bar, NOT screenshots of Copilot output — every artifact says so on itself, and ships the prompt so you can reproduce it. We claim the format and the documented features; we don't claim Copilot produces pixel-identical results every time. That's the difference between a demo and a sales pitch.">
+  <section class="slide" data-notes="This slide is why you can trust the rest of the talk. The examples were built with Claude Code, an LLM coding agent, over several iterations. They are not one-shot outputs and they are not screenshots of any product. Every artifact says this on itself and ships its brief. We claim the format and the pattern, not pixel-identical reproduction. That is the difference between a demo and a sales pitch.">
     <div class="kicker" style="color:var(--honest)">The honesty slide</div>
     <h2>What I am <em>not</em> claiming</h2>
     <ul class="big">
-      <li>The example artifacts were built with an AI coding agent to show the <strong>output format</strong> — they are not screenshots of Copilot output. Each one says so, on itself.</li>
-      <li>Every artifact ships its own prompt — <strong>reproduce it in your tenant</strong> and judge the result yourself.</li>
-      <li>Model output varies. The <strong>format's properties don't</strong> — and the platform capabilities cited are documented by Microsoft and GitHub.</li>
+      <li>The examples were built with an LLM coding agent <strong>over several iterations</strong>. They show the format's potential, not a guaranteed first answer. Each one says so, on itself.</li>
+      <li>Every artifact ships its own brief. <strong>Reproduce it with your model</strong> and judge the result yourself.</li>
+      <li>Different models, different output. <strong>Similar, not identical.</strong> The format's properties are what carry over.</li>
       <li>All data is fictional: ABC Corp does not exist.</li>
     </ul>
   </section>
 
   <!-- 11 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Make it actionable. Business users: next status update, ask Copilot for the one-pager — worst case you paste and save the file manually. Engineers: next PR, ask agent mode for the review pack next to the change; commit it. Both: steal the prompts from the gallery. Small, reversible, Monday-sized experiments.">
+  <section class="slide" data-notes="Make it actionable. Business users: next status update, paste your notes and the gallery brief into your assistant, iterate, send the file. Engineers: next significant PR, have your agent produce a review pack or ADR beside the change and commit it. Small, reversible, Monday-sized experiments.">
     <div class="kicker">How to start on Monday</div>
     <h2>One experiment per lens</h2>
     <div class="twin">
-      <div class="panelbox m365">
-        <h3 class="accent-m365">Business users</h3>
+      <div class="panelbox biz">
+        <h3 class="accent-biz">Business users</h3>
         <ul>
           <li>Take your next status update's raw notes.</li>
-          <li>Ask Copilot for a <strong>single-file HTML one-pager</strong> (steal the prompt from artifact #1).</li>
-          <li>Preview it in Pages — or save as <span class="mono">.html</span> and open it. Send that instead.</li>
+          <li>Ask your assistant for a <strong>single-file HTML one-pager</strong> (steal the brief from artifact B1) and iterate.</li>
+          <li>Save as <span class="mono">.html</span>, open, send that instead.</li>
         </ul>
       </div>
-      <div class="panelbox gh">
-        <h3 class="accent-gh">Engineers</h3>
+      <div class="panelbox eng">
+        <h3 class="accent-eng">Engineers</h3>
         <ul>
-          <li>On your next significant PR, ask agent mode for a <strong>review pack or ADR</strong> beside the change.</li>
-          <li>Commit the artifact to the repo — it diffs like code because it is code.</li>
+          <li>On your next significant PR, have your agent draft a <strong>review pack or ADR</strong> beside the change.</li>
+          <li>Commit the artifact to the repo. It diffs like code because it is code.</li>
           <li>Attach it to the change record. Watch your auditors smile.</li>
         </ul>
       </div>
@@ -265,14 +275,14 @@
   </section>
 
   <!-- 12 ──────────────────────────────────────── -->
-  <section class="slide" data-notes="Credit where due: the idea of agents producing HTML artifacts instead of markdown walls comes from Thariq Shihipar's 'The unreasonable effectiveness of HTML' — the enterprise framing, the governance work, and all examples here are new. Everything is open: gallery, prompts, sources. Closing line: next time your AI assistant offers a wall of text, ask for the artifact instead.">
+  <section class="slide" data-notes="Credit where due: the idea of agents producing HTML artifacts instead of markdown walls comes from Thariq Shihipar's 'The unreasonable effectiveness of HTML'. The enterprise framing, the briefs and all examples here are new. Everything is open: gallery, briefs, sources. Closing line: next time your AI assistant offers a wall of text, ask for the artifact instead.">
     <div class="kicker">Close</div>
     <h2>Ask for the artifact.</h2>
-    <p class="lede">Gallery, prompts and sources — open, MIT-licensed, one folder of <span class="mono">.html</span> files:</p>
+    <p class="lede">Gallery, briefs and sources. Open, MIT-licensed, one folder of <span class="mono">.html</span> files:</p>
     <p class="lede mono">github.com/vishal8shah/Power-of-HTML-with-LLMs</p>
-    <p class="lede">Idea credit: Thariq Shihipar's <em>"The unreasonable effectiveness of HTML"</em> — the enterprise lens,
-    governance framing and all examples here are new work.</p>
-    <p class="smallnote">Vishal Shah · built with an AI coding agent — which is itself the point ·
+    <p class="lede">Idea credit: Thariq Shihipar's <em>"The unreasonable effectiveness of HTML"</em>. The enterprise
+    lens, the briefs and all examples here are new work.</p>
+    <p class="smallnote">Vishal Shah · built with Claude Code, an LLM coding agent, which is itself the point ·
       <a href="../index.html">back to the gallery</a></p>
   </section>
 

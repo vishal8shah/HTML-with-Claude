@@ -33,15 +33,15 @@ for x in range(W):
 x = 84
 d.text((x, 96), "POWER-OF-HTML/ENTERPRISE", font=mono(22), fill=DARK_SOFT)
 
-d.text((x, 160), "The artifact is the demo —", font=bold(64), fill=DARK_TEXT)
+d.text((x, 160), "The artifact is the demo:", font=bold(64), fill=DARK_TEXT)
 d.text((x, 240), "HTML in the enterprise", font=bold(64), fill=DARK_TEXT)
 
 # twin underline bars
 d.rectangle([x, 340, x + 210, 352], fill=M365)
 d.rectangle([x + 222, 340, x + 432, 352], fill=GH)
 
-d.text((x, 396), "13 self-contained HTML artifacts for M365 Copilot and", font=sans(30), fill=DARK_SOFT)
-d.text((x, 440), "GitHub Copilot users in a governed enterprise.", font=sans(30), fill=DARK_SOFT)
+d.text((x, 396), "13 single-file HTML artifacts, generated with LLMs,", font=sans(30), fill=DARK_SOFT)
+d.text((x, 440), "for business users and engineers in the enterprise.", font=sans(30), fill=DARK_SOFT)
 
 d.text((x, 530), "Every claim demonstrated live or cited  ·  0 external requests  ·  works from file://",
        font=mono(21), fill=DARK_SOFT)

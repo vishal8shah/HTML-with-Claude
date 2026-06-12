@@ -3,10 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The artifact is the demo — HTML in the enterprise</title>
-<meta name="description" content="13 self-contained HTML artifacts showing what M365 Copilot and GitHub Copilot users can produce in a governed enterprise. Every claim demonstrated or cited.">
-<meta property="og:title" content="The artifact is the demo — HTML in the enterprise">
-<meta property="og:description" content="13 self-contained HTML files showing what M365 Copilot and GitHub Copilot users can produce in a governed enterprise. Every capability claim demonstrated live or cited to official documentation.">
+<title>The artifact is the demo: HTML in the enterprise</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2316202E'/><rect x='7' y='13' width='8' height='6' rx='2' fill='%233D5ADB'/><rect x='17' y='13' width='8' height='6' rx='2' fill='%230E7C6B'/></svg>">
+<meta name="description" content="13 self-contained HTML artifacts that show what LLMs can produce for business users and engineers in the enterprise. Working examples, honest framing, reproducible briefs.">
+<meta property="og:title" content="The artifact is the demo: HTML in the enterprise">
+<meta property="og:description" content="13 self-contained HTML files showing what LLMs can produce for business users and engineers in the enterprise. Every example is real, every brief is included, all data is fictional.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vishal8shah.github.io/Power-of-HTML-with-LLMs/">
 <meta property="og:image" content="https://vishal8shah.github.io/Power-of-HTML-with-LLMs/assets/og-image.png">
@@ -23,6 +24,8 @@
     --ok:#1F7A33; --ok-tint:#E7F3EA; --warn:#B05A00; --warn-tint:#FDF1E3;
     --bad:#B3261E; --bad-tint:#FBEAE9;
     --dark-text:#E8EDF4; --dark-soft:#9FB0C3; --dark-line:#2C3A4D;
+    --shadow:0 1px 2px rgba(22,32,46,.05),0 4px 14px rgba(22,32,46,.04);
+    --shadow-hover:0 2px 4px rgba(22,32,46,.07),0 12px 28px rgba(22,32,46,.09);
     --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     --mono:ui-monospace,"Cascadia Code","Segoe UI Mono",Consolas,Menlo,monospace;
   }
@@ -33,61 +36,70 @@
   a{color:inherit}
 
   /* ── header strip ── */
-  .topbar{position:sticky;top:0;z-index:50;background:var(--panel);border-bottom:1px solid var(--line)}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
   .topbar .wrap{display:flex;align-items:center;gap:18px;padding-top:10px;padding-bottom:10px}
-  .mark{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.02em;text-decoration:none}
+  .mark{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.02em;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+  .mark .dotpair{display:inline-flex;gap:3px}
+  .mark .dotpair i{width:8px;height:8px;border-radius:3px;display:inline-block}
+  .mark .dotpair i:first-child{background:var(--lens-m365)}
+  .mark .dotpair i:last-child{background:var(--lens-gh)}
   .mark .tld{color:var(--ink-soft);font-weight:400}
   nav.jump{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}
   nav.jump a{font-size:12.5px;color:var(--ink-soft);text-decoration:none;padding:5px 10px;border-radius:6px}
   nav.jump a:hover{background:var(--ground);color:var(--ink)}
 
   /* ── hero ── */
-  .hero{padding:64px 0 40px}
-  .hero .wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;align-items:start}
+  .hero{padding:72px 0 44px;background:linear-gradient(180deg,#FFFFFF 0%,var(--ground) 100%);border-bottom:1px solid var(--line)}
+  .hero .wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:52px;align-items:start}
   @media (max-width:840px){.hero .wrap{grid-template-columns:1fr}}
-  h1{font-size:clamp(34px,4.6vw,54px);font-weight:800;letter-spacing:-.028em;line-height:1.05;margin:0 0 18px}
-  h1 .m365{color:var(--lens-m365)}
-  h1 .gh{color:var(--lens-gh)}
+  .hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:16px}
+  h1{font-size:clamp(36px,4.8vw,58px);font-weight:800;letter-spacing:-.03em;line-height:1.04;margin:0 0 20px}
   .thesis{font-size:17px;color:var(--ink-soft);max-width:56ch;margin:0}
   .thesis strong{color:var(--ink)}
   .thesis + .thesis{margin-top:12px}
 
-  .spec{border:1.5px solid var(--ink);border-radius:12px;background:var(--panel);overflow:hidden}
+  .spec{border:1.5px solid var(--ink);border-radius:14px;background:var(--panel);overflow:hidden;box-shadow:var(--shadow)}
   .spec h2{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
-    color:var(--dark-text);background:var(--ink);margin:0;padding:10px 16px}
+    color:var(--dark-text);background:var(--ink);margin:0;padding:11px 16px}
   .spec ul{list-style:none;margin:0;padding:6px 0}
-  .spec li{display:flex;justify-content:space-between;gap:14px;padding:9px 16px;font-size:13.5px;border-bottom:1px solid var(--ground)}
+  .spec li{display:flex;justify-content:space-between;gap:14px;padding:10px 16px;font-size:13.5px;border-bottom:1px solid var(--ground)}
   .spec li:last-child{border-bottom:none}
-  .spec li .v{font-family:var(--mono);font-weight:700;font-size:12.5px}
+  .spec li .v{font-family:var(--mono);font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums}
   .spec li .v.ok{color:var(--ok)}
 
   /* ── honesty strip ── */
-  .honesty{background:var(--honest-tint);border-top:1px solid var(--honest);border-bottom:1px solid var(--honest)}
+  .honesty{background:var(--honest-tint);border-bottom:1px solid var(--honest)}
   .honesty .wrap{display:flex;gap:14px;align-items:flex-start;padding-top:16px;padding-bottom:16px}
   .honesty .tag{flex-shrink:0;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
     color:var(--honest);border:1px solid var(--honest);border-radius:4px;padding:3px 8px;margin-top:2px}
   .honesty p{margin:0;font-size:13.5px;color:var(--ink)}
-  .honesty a{color:var(--honest)}
 
   /* ── lens bands ── */
-  .lens{padding:54px 0 10px}
+  .lens{padding:56px 0 10px}
   .lens-head{border-left:5px solid;padding:4px 0 4px 20px;margin-bottom:10px}
   .lens-head .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
   .lens-head h2{font-size:27px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
   .lens-head p{margin:0;max-width:72ch;color:var(--ink-soft);font-size:14.5px}
-  .lens-head p a{text-decoration-color:var(--line)}
-  #m365 .lens-head{border-color:var(--lens-m365)}
-  #m365 .lens-head .eyebrow{color:var(--lens-m365)}
-  #github .lens-head{border-color:var(--lens-gh)}
-  #github .lens-head .eyebrow{color:var(--lens-gh)}
+  #business .lens-head{border-color:var(--lens-m365)}
+  #business .lens-head .eyebrow{color:var(--lens-m365)}
+  #engineering .lens-head{border-color:var(--lens-gh)}
+  #engineering .lens-head .eyebrow{color:var(--lens-gh)}
 
   /* ── register rows ── */
-  .register{margin-top:22px;border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
-  a.row{display:grid;grid-template-columns:54px 1fr auto;gap:8px 18px;align-items:center;
+  .register{margin-top:22px;border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;box-shadow:var(--shadow)}
+  a.row{display:grid;grid-template-columns:50px 44px 1fr auto;gap:8px 16px;align-items:center;
     padding:16px 20px 16px 0;text-decoration:none;border-bottom:1px solid var(--ground);
     border-left:4px solid transparent;transition:border-color .12s,background .12s}
   a.row:last-child{border-bottom:none}
   a.row .num{font-family:var(--mono);font-size:12.5px;font-weight:700;text-align:center;color:var(--ink-soft)}
+  .glyph{width:44px;height:44px;border-radius:10px;background:var(--ground);display:flex;align-items:center;justify-content:center}
+  .glyph svg{width:30px;height:30px;overflow:visible}
+  .glyph svg .s{fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  #business .glyph svg .s{stroke:var(--lens-m365)}
+  #engineering .glyph svg .s{stroke:var(--lens-gh)}
+  .glyph svg .f{opacity:.22}
+  #business .glyph svg .f{fill:var(--lens-m365)}
+  #engineering .glyph svg .f{fill:var(--lens-gh)}
   a.row .main .t{display:block;font-size:16.5px;font-weight:700;letter-spacing:-.01em;margin-bottom:2px}
   a.row .main .d{display:block;font-size:13px;color:var(--ink-soft)}
   a.row .side{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
@@ -96,62 +108,52 @@
     background:var(--ground);border:1px solid var(--line);border-radius:99px;padding:2px 8px;white-space:nowrap}
   a.row .file{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
   a.row .file::after{content:" →"}
-  #m365 a.row:hover{border-left-color:var(--lens-m365);background:var(--lens-m365-tint)}
-  #m365 a.row:hover .num,#m365 a.row:hover .file{color:var(--lens-m365)}
-  #github a.row:hover{border-left-color:var(--lens-gh);background:var(--lens-gh-tint)}
-  #github a.row:hover .num,#github a.row:hover .file{color:var(--lens-gh)}
+  #business a.row:hover{border-left-color:var(--lens-m365);background:var(--lens-m365-tint)}
+  #business a.row:hover .num,#business a.row:hover .file{color:var(--lens-m365)}
+  #engineering a.row:hover{border-left-color:var(--lens-gh);background:var(--lens-gh-tint)}
+  #engineering a.row:hover .num,#engineering a.row:hover .file{color:var(--lens-gh)}
   @media (max-width:700px){
     a.row{grid-template-columns:44px 1fr;padding-right:14px}
+    .glyph{display:none}
     a.row .side{grid-column:2;flex-direction:row;align-items:center;justify-content:space-between;width:100%}
   }
 
   /* bonus row */
-  .bonus{margin:26px 0 0;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  .bonus{margin:26px 0 0;border-radius:14px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow)}
   .bonus a.row{background:linear-gradient(90deg,var(--lens-m365-tint),var(--lens-gh-tint));border-left:none;position:relative}
   .bonus a.row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
     background:linear-gradient(180deg,var(--lens-m365),var(--lens-gh))}
+  .bonus .glyph{background:var(--panel)}
+  .bonus .glyph svg .s{stroke:var(--lens-gh)}
+  .bonus .glyph svg .f{fill:var(--lens-m365)}
   .bonus a.row:hover .file{color:var(--lens-gh)}
 
-  /* ── tool-agnostic note ── */
-  .agnostic{margin:56px 0 0}
-  .agnostic .box{border:1px dashed var(--ink-soft);border-radius:12px;padding:20px 24px;background:var(--panel)}
-  .agnostic h2{font-size:15px;font-weight:800;margin:0 0 8px}
-  .agnostic p{margin:0;font-size:14px;color:var(--ink-soft);max-width:88ch}
-  .agnostic p strong{color:var(--ink)}
-
-  /* ── governance ── */
-  .gov{padding:60px 0 0}
-  .gov h2,.why h2,.credits h2{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
-  .gov .sub,.why .sub{color:var(--ink-soft);font-size:14.5px;margin:0 0 22px;max-width:78ch}
-  .gov-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-  @media (max-width:840px){.gov-grid{grid-template-columns:1fr}}
-  .gov-col{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-  .gov-col h3{margin:0;padding:12px 18px;font-size:13.5px;color:#fff}
-  .gov-col.m365 h3{background:var(--lens-m365)}
-  .gov-col.gh h3{background:var(--lens-gh)}
-  .gov-col ul{list-style:none;margin:0;padding:4px 0}
-  .gov-col li{padding:13px 18px;border-bottom:1px solid var(--ground);font-size:13.5px}
-  .gov-col li:last-child{border-bottom:none}
-  .gov-col li .src{display:block;margin-top:4px;font-size:12px;color:var(--ink-soft)}
-  .gov-col.m365 li .src a{color:var(--lens-m365)}
-  .gov-col.gh li .src a{color:var(--lens-gh)}
-  .gov-fallback{margin-top:16px;font-size:13.5px;color:var(--ink-soft);max-width:84ch}
-
   /* ── why html ── */
-  .why{padding:60px 0 0}
+  .why{padding:64px 0 0}
+  .why h2,.appendix h2,.credits h2{font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0 0 8px}
+  .why .sub,.appendix .sub{color:var(--ink-soft);font-size:14.5px;margin:0 0 22px;max-width:78ch}
   .why-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
-  .why-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .why-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
   .why-card b{display:block;font-size:14.5px;margin-bottom:4px}
   .why-card span{font-size:13px;color:var(--ink-soft)}
 
+  /* ── appendix ── */
+  .appendix{padding:64px 0 0}
+  .appendix .box{background:var(--panel);border:1px dashed var(--ink-soft);border-radius:12px;padding:20px 24px}
+  .appendix table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  .appendix td{border-top:1px solid var(--ground);padding:9px 14px 9px 0;vertical-align:top}
+  .appendix td.src{white-space:nowrap}
+  .appendix td.src a{color:var(--lens-m365)}
+  .appendix .box > p{margin:0;font-size:13.5px;color:var(--ink-soft);max-width:88ch}
+
   /* ── credits ── */
-  .credits{padding:60px 0 0}
+  .credits{padding:64px 0 0}
   .credits p{font-size:14px;color:var(--ink-soft);max-width:84ch;margin:0 0 10px}
   .credits p strong{color:var(--ink)}
   .credits a{color:var(--ink)}
 
   /* ── footer ── */
-  footer{margin-top:70px;background:var(--ink);color:var(--dark-soft)}
+  footer{margin-top:72px;background:var(--ink);color:var(--dark-soft)}
   footer .wrap{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:baseline;padding-top:26px;padding-bottom:30px;font-size:13px}
   footer .who{color:var(--dark-text);font-weight:700;font-size:14.5px}
   footer a{color:var(--dark-text);text-decoration-color:var(--dark-line)}
@@ -163,12 +165,12 @@
 
 <header class="topbar">
   <div class="wrap">
-    <a class="mark" href="#">power-of-html<span class="tld">/enterprise</span></a>
+    <a class="mark" href="#"><span class="dotpair"><i></i><i></i></span>power-of-html<span class="tld">/enterprise</span></a>
     <nav class="jump" aria-label="Sections">
-      <a href="#m365">M365 Copilot</a>
-      <a href="#github">GitHub Copilot</a>
-      <a href="#governance">Governance</a>
+      <a href="#business">Business</a>
+      <a href="#engineering">Engineering</a>
       <a href="#why-html">Why HTML</a>
+      <a href="#tools">Enterprise tools</a>
       <a href="#credits">Credits</a>
     </nav>
   </div>
@@ -177,23 +179,24 @@
 <section class="hero">
   <div class="wrap">
     <div>
-      <h1>The artifact is the&nbsp;demo —<br>HTML in the <span class="m365">enter</span><span class="gh">prise</span></h1>
-      <p class="thesis">Your organisation already runs <strong>M365 Copilot</strong> for business users and
-      <strong>GitHub Copilot</strong> for engineers. The highest-leverage thing you can ask either of them for is not
-      a wall of text — it's <strong>one self-contained HTML file</strong>: interactive, printable, attachable to a
-      ticket, and openable on any locked-down laptop.</p>
-      <p class="thesis">Below are thirteen working examples. Each one carries the exact prompt that produces something
-      like it, and every capability claim links to official documentation. Nothing here is mocked up as a picture —
-      <strong>every demo is the real file</strong>.</p>
+      <div class="eyebrow">13 working examples · all data fictional · every brief included</div>
+      <h1>The artifact is the demo:<br>HTML in the enterprise</h1>
+      <p class="thesis">Everyone in your organisation now works next to a capable LLM. The highest-leverage thing
+      you can ask it for is not a wall of text. It is <strong>one self-contained HTML file</strong>: interactive,
+      printable, attachable to a ticket, and openable on any locked-down laptop.</p>
+      <p class="thesis">The thirteen artifacts below are real, working files, generated with an LLM. Each carries the
+      brief that produced it. Run that brief in the model of your choice, whether that is GPT, Claude, Gemini, Grok or
+      DeepSeek, and iterate a few rounds. You will get <strong>similar output, not identical</strong>. That is the point:
+      the capability belongs to LLMs, not to any one product.</p>
     </div>
     <aside class="spec" aria-label="Verifiable properties of this site">
-      <h2>Spec — verify it yourself</h2>
+      <h2>Spec: verify it yourself</h2>
       <ul>
         <li>HTML artifacts <span class="v">13 + this page</span></li>
         <li>External requests <span class="v ok">0</span></li>
         <li>Frameworks / build steps <span class="v ok">0 / 0</span></li>
         <li>Works from <span style="font-family:var(--mono);font-size:12.5px">file://</span> <span class="v ok">yes</span></li>
-        <li>Capability claims cited <span class="v ok">all</span></li>
+        <li>Generated with an LLM <span class="v ok">yes, all of it</span></li>
         <li>Data <span class="v">fictional (ABC Corp)</span></li>
       </ul>
     </aside>
@@ -203,219 +206,267 @@
 <div class="honesty">
   <div class="wrap">
     <span class="tag">Read this first</span>
-    <p>These thirteen artifacts are <strong>reference outputs built with an AI coding agent</strong> (Claude Code) to show
-    the format — they are not screenshots of Copilot output, and each artifact says so on itself. Every artifact includes
-    the prompt you would give Copilot to reproduce it; every claim about what Copilot can do links to Microsoft or GitHub
-    documentation; everything else is presented as an argument, not a fact. All names and numbers are fictional —
+    <p>These artifacts were built with <strong>Claude Code, an LLM coding agent</strong>, over several rounds of
+    iteration. They are shown as the bar to aim for, not as a guaranteed first answer. Any capable model can reach
+    similar quality if you iterate; none will reproduce these byte for byte. All names and numbers are fictional.
     ABC Corp does not exist.</p>
   </div>
 </div>
 
-<section class="lens" id="m365">
+<section class="lens" id="business">
   <div class="wrap">
     <div class="lens-head">
-      <div class="eyebrow">Lens 1 · business users</div>
-      <h2>M365 Copilot — everyday documents, upgraded</h2>
-      <p>No IDE, no repo, no deploy. Copilot Pages lets business users create, edit and preview runnable code directly
-      inside a page (<a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">Microsoft Support</a>),
-      governed by an admin policy that's enabled by default
-      (<a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn</a>).
-      And in any tenant, the fallback always works: ask Copilot for a single HTML file, save it as
-      <code>.html</code>, open it in your browser.</p>
+      <div class="eyebrow">Lens 1 · LLMs for business users</div>
+      <h2>Everyday documents, upgraded</h2>
+      <p>No IDE, no repo, no deploy. You paste a brief into the assistant you already have, save its answer as a
+      <code>.html</code> file, and open it in a browser. That is the whole workflow. The six artifacts below replace
+      the documents business teams produce every week.</p>
     </div>
     <div class="register">
-      <a class="row" href="demos/m365-01-status-onepager.html">
-        <span class="num">M1</span>
+      <a class="row" href="demos/biz-01-status-onepager.html">
+        <span class="num">B1</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <line class="s" x1="3" y1="15" x2="27" y2="15"/>
+          <circle class="f" cx="8" cy="15" r="4"/><circle class="s" cx="8" cy="15" r="4"/>
+          <circle class="s" cx="19" cy="15" r="3"/>
+          <line class="s" x1="5" y1="24" x2="18" y2="24"/>
+        </svg></span>
         <span class="main"><span class="t">Weekly status one-pager</span>
-          <span class="d">The Monday status mail nobody reads, as a page everyone does — RAG, milestones, budget, risks.</span></span>
+          <span class="d">The Monday status mail nobody reads, as a page everyone does: RAG, milestones, budget, risks.</span></span>
         <span class="side"><span class="chips"><i>SVG timeline</i><i>prints to A4</i></span>
-          <span class="file">m365-01-status-onepager.html</span></span>
+          <span class="file">biz-01-status-onepager.html</span></span>
       </a>
-      <a class="row" href="demos/m365-02-decisions-actions.html">
-        <span class="num">M2</span>
-        <span class="main"><span class="t">Decisions &amp; actions tracker</span>
+      <a class="row" href="demos/biz-02-decisions-actions.html">
+        <span class="num">B2</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="s" x="4" y="4" width="22" height="22" rx="4"/>
+          <path class="s" d="M9 12 l3 3 l6 -6"/>
+          <line class="s" x1="9" y1="21" x2="21" y2="21"/>
+        </svg></span>
+        <span class="main"><span class="t">Decisions and actions tracker</span>
           <span class="d">Meeting recap as a working surface: filter by owner, tick actions off, copy the rest out as Markdown.</span></span>
         <span class="side"><span class="chips"><i>filter</i><i>copy-out</i></span>
-          <span class="file">m365-02-decisions-actions.html</span></span>
+          <span class="file">biz-02-decisions-actions.html</span></span>
       </a>
-      <a class="row" href="demos/m365-03-kpi-dashboard.html">
-        <span class="num">M3</span>
+      <a class="row" href="demos/biz-03-kpi-dashboard.html">
+        <span class="num">B3</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="f" x="5" y="16" width="5" height="10" rx="1"/>
+          <rect class="f" x="13" y="10" width="5" height="16" rx="1"/>
+          <rect class="f" x="21" y="13" width="5" height="13" rx="1"/>
+          <path class="s" d="M5 12 C 11 6, 18 9, 26 4"/>
+        </svg></span>
         <span class="main"><span class="t">KPI mini-dashboard</span>
-          <span class="d">A pasted Excel table turned into KPI cards and live charts — no BI licence, no waiting for a dashboard team.</span></span>
+          <span class="d">A pasted spreadsheet turned into KPI cards and live charts. No BI licence, no waiting for a dashboard team.</span></span>
         <span class="side"><span class="chips"><i>SVG charts</i><i>range toggle</i></span>
-          <span class="file">m365-03-kpi-dashboard.html</span></span>
+          <span class="file">biz-03-kpi-dashboard.html</span></span>
       </a>
-      <a class="row" href="demos/m365-04-onboarding-guide.html">
-        <span class="num">M4</span>
-        <span class="main"><span class="t">Process / onboarding guide</span>
-          <span class="d">A procurement process as collapsible steps with an approval flowchart — instead of a 12-page PDF.</span></span>
+      <a class="row" href="demos/biz-04-onboarding-guide.html">
+        <span class="num">B4</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="s" x="4" y="4" width="9" height="9" rx="2"/>
+          <rect class="f" x="17" y="17" width="9" height="9" rx="2"/>
+          <rect class="s" x="17" y="17" width="9" height="9" rx="2"/>
+          <path class="s" d="M13 8 h6 a3 3 0 0 1 3 3 v6"/>
+        </svg></span>
+        <span class="main"><span class="t">Process and onboarding guide</span>
+          <span class="d">A procurement process as collapsible steps with an approval flowchart, instead of a 12-page PDF.</span></span>
         <span class="side"><span class="chips"><i>collapsible</i><i>flowchart</i><i>FAQ</i></span>
-          <span class="file">m365-04-onboarding-guide.html</span></span>
+          <span class="file">biz-04-onboarding-guide.html</span></span>
       </a>
-      <a class="row" href="demos/m365-05-raid-board.html">
-        <span class="num">M5</span>
+      <a class="row" href="demos/biz-05-raid-board.html">
+        <span class="num">B5</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="s" x="4" y="4" width="10" height="10" rx="2"/>
+          <rect class="s" x="17" y="4" width="9" height="10" rx="2"/>
+          <rect class="s" x="4" y="17" width="9" height="9" rx="2"/>
+          <rect class="f" x="16" y="16" width="10" height="10" rx="2"/>
+        </svg></span>
         <span class="main"><span class="t">RAID log board</span>
-          <span class="d">Risks, assumptions, issues and dependencies — filter, sort, add during the meeting, export before you close.</span></span>
+          <span class="d">Risks, assumptions, issues and dependencies: filter, sort, add during the meeting, export before you close.</span></span>
         <span class="side"><span class="chips"><i>filter</i><i>add items</i><i>export</i></span>
-          <span class="file">m365-05-raid-board.html</span></span>
+          <span class="file">biz-05-raid-board.html</span></span>
       </a>
-      <a class="row" href="demos/m365-06-townhall-onepager.html">
-        <span class="num">M6</span>
+      <a class="row" href="demos/biz-06-townhall-onepager.html">
+        <span class="num">B6</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <path class="f" d="M5 12 L19 6 V24 L5 18 Z"/>
+          <path class="s" d="M5 12 L19 6 V24 L5 18 Z"/>
+          <path class="s" d="M22 11 a6 6 0 0 1 0 8"/>
+        </svg></span>
         <span class="main"><span class="t">Town-hall announcement</span>
-          <span class="d">An org change explained once, with a "what this means for you" switch per role — not three separate mails.</span></span>
+          <span class="d">An org change explained once, with a "what this means for you" switch per role, not three separate mails.</span></span>
         <span class="side"><span class="chips"><i>role switcher</i><i>timeline</i></span>
-          <span class="file">m365-06-townhall-onepager.html</span></span>
+          <span class="file">biz-06-townhall-onepager.html</span></span>
       </a>
     </div>
   </div>
 </section>
 
-<section class="lens" id="github">
+<section class="lens" id="engineering">
   <div class="wrap">
     <div class="lens-head">
-      <div class="eyebrow">Lens 2 · engineers in a regulated environment</div>
-      <h2>GitHub Copilot — documents that survive an audit</h2>
-      <p>In a regulated enterprise the constraint isn't capability, it's governance. Copilot's agent mode
-      "will determine which files to make changes to, offer code changes and terminal commands for the user's approval,
-      and iterate" (<a href="https://docs.github.com/en/copilot/get-started/features">GitHub Docs</a>) — under
-      <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">enterprise policies</a>
-      your admins control. So the same run that changes the code can write the evidence artifact next to it —
-      diffable in git, attachable to the change record, readable in two years with no tooling.</p>
+      <div class="eyebrow">Lens 2 · LLMs for engineers in regulated environments</div>
+      <h2>Documents that survive an audit</h2>
+      <p>Engineering teams in banks and other regulated companies live on evidence: reviews, decisions, incident
+      records, release packs. An LLM coding agent can write that evidence next to the code it describes, as a file in
+      the repo. HTML earns its place here because the result diffs like code, attaches to a change ticket, and still
+      opens in two years with no tooling.</p>
     </div>
     <div class="register">
-      <a class="row" href="demos/gh-07-review-pack.html">
-        <span class="num">G7</span>
+      <a class="row" href="demos/eng-07-review-pack.html">
+        <span class="num">E7</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="s" x="4" y="4" width="10" height="22" rx="2"/>
+          <rect class="f" x="17" y="4" width="9" height="22" rx="2"/>
+          <line class="s" x1="7" y1="10" x2="11" y2="10"/>
+          <line class="s" x1="7" y1="15" x2="11" y2="15"/>
+          <line class="s" x1="20" y1="12" x2="23" y2="12"/>
+        </svg></span>
         <span class="main"><span class="t">Annotated code review pack</span>
-          <span class="d">A diff with severity-tagged margin notes and a four-eyes sign-off — review evidence you can archive.</span></span>
+          <span class="d">A diff with severity-tagged margin notes and a four-eyes sign-off. Review evidence you can archive.</span></span>
         <span class="side"><span class="chips"><i>diff</i><i>severity filter</i><i>sign-off</i></span>
-          <span class="file">gh-07-review-pack.html</span></span>
+          <span class="file">eng-07-review-pack.html</span></span>
       </a>
-      <a class="row" href="demos/gh-08-adr.html">
-        <span class="num">G8</span>
+      <a class="row" href="demos/eng-08-adr.html">
+        <span class="num">E8</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <path class="f" d="M15 4 L26 15 L15 26 L4 15 Z"/>
+          <path class="s" d="M15 4 L26 15 L15 26 L4 15 Z"/>
+          <path class="s" d="M12 15 l2.5 2.5 L19 13"/>
+        </svg></span>
         <span class="main"><span class="t">Architecture Decision Record</span>
-          <span class="d">Three options scored on a criteria table, with a current-vs-target diagram — the why, kept next to the code.</span></span>
+          <span class="d">Three options scored on a criteria table, with a current vs target diagram. The why, kept next to the code.</span></span>
         <span class="side"><span class="chips"><i>options table</i><i>diagram toggle</i></span>
-          <span class="file">gh-08-adr.html</span></span>
+          <span class="file">eng-08-adr.html</span></span>
       </a>
-      <a class="row" href="demos/gh-09-postmortem.html">
-        <span class="num">G9</span>
+      <a class="row" href="demos/eng-09-postmortem.html">
+        <span class="num">E9</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <line class="s" x1="8" y1="4" x2="8" y2="26"/>
+          <circle class="f" cx="8" cy="8" r="3"/><circle class="s" cx="8" cy="8" r="3"/>
+          <circle class="s" cx="8" cy="17" r="3"/>
+          <line class="s" x1="15" y1="8" x2="26" y2="8"/>
+          <line class="s" x1="15" y1="17" x2="23" y2="17"/>
+          <line class="s" x1="15" y1="25" x2="20" y2="25"/>
+        </svg></span>
         <span class="main"><span class="t">Incident post-mortem</span>
-          <span class="d">A blameless minute-by-minute timeline, five whys, and a remediation checklist — the archived incident record.</span></span>
+          <span class="d">A blameless minute-by-minute timeline, five whys, and a remediation checklist. The archived incident record.</span></span>
         <span class="side"><span class="chips"><i>timeline filter</i><i>five whys</i></span>
-          <span class="file">gh-09-postmortem.html</span></span>
+          <span class="file">eng-09-postmortem.html</span></span>
       </a>
-      <a class="row" href="demos/gh-10-release-evidence.html">
-        <span class="num">G10</span>
+      <a class="row" href="demos/eng-10-release-evidence.html">
+        <span class="num">E10</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <path class="f" d="M15 3 L25 7 V14 C25 21 20 25 15 27 C10 25 5 21 5 14 V7 Z"/>
+          <path class="s" d="M15 3 L25 7 V14 C25 21 20 25 15 27 C10 25 5 21 5 14 V7 Z"/>
+          <path class="s" d="M11 14 l3 3 l5.5 -6"/>
+        </svg></span>
         <span class="main"><span class="t">Release evidence report</span>
-          <span class="d">Commits, test results, approvals and the rollback plan for one change record — what audit actually asks for.</span></span>
+          <span class="d">Commits, test results, approvals and the rollback plan for one change record. What audit actually asks for.</span></span>
         <span class="side"><span class="chips"><i>test evidence</i><i>prints clean</i></span>
-          <span class="file">gh-10-release-evidence.html</span></span>
+          <span class="file">eng-10-release-evidence.html</span></span>
       </a>
-      <a class="row" href="demos/gh-11-dependency-report.html">
-        <span class="num">G11</span>
+      <a class="row" href="demos/eng-11-dependency-report.html">
+        <span class="num">E11</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="s" x="10" y="3" width="10" height="7" rx="2"/>
+          <rect class="f" x="3" y="20" width="10" height="7" rx="2"/>
+          <rect class="s" x="3" y="20" width="10" height="7" rx="2"/>
+          <rect class="s" x="17" y="20" width="10" height="7" rx="2"/>
+          <path class="s" d="M13 10 l-4 10 M17 10 l4 10"/>
+        </svg></span>
         <span class="main"><span class="t">Dependency risk report</span>
           <span class="d">A quarterly review you can sort and filter: advisories, licence flags, and the order to upgrade in.</span></span>
         <span class="side"><span class="chips"><i>sortable</i><i>licence flags</i></span>
-          <span class="file">gh-11-dependency-report.html</span></span>
+          <span class="file">eng-11-dependency-report.html</span></span>
       </a>
-      <a class="row" href="demos/gh-12-module-map.html">
-        <span class="num">G12</span>
+      <a class="row" href="demos/eng-12-module-map.html">
+        <span class="num">E12</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <circle class="f" cx="8" cy="8" r="4"/><circle class="s" cx="8" cy="8" r="4"/>
+          <circle class="s" cx="23" cy="12" r="3.5"/>
+          <circle class="s" cx="13" cy="23" r="3.5"/>
+          <line class="s" x1="11" y1="10" x2="20" y2="11"/>
+          <line class="s" x1="10" y1="12" x2="12" y2="19"/>
+        </svg></span>
         <span class="main"><span class="t">Legacy module map</span>
           <span class="d">A 12-year-old batch engine as clickable boxes and arrows, hot path highlighted, unknowns admitted.</span></span>
         <span class="side"><span class="chips"><i>clickable map</i><i>hot path</i></span>
-          <span class="file">gh-12-module-map.html</span></span>
+          <span class="file">eng-12-module-map.html</span></span>
       </a>
     </div>
 
     <div class="bonus">
       <a class="row" href="demos/deck-13-guild-talk.html">
         <span class="num">★13</span>
+        <span class="glyph" aria-hidden="true"><svg viewBox="0 0 30 30">
+          <rect class="f" x="3" y="6" width="20" height="14" rx="2"/>
+          <rect class="s" x="7" y="9" width="20" height="14" rx="2"/>
+          <path class="s" d="M13 26 h8"/>
+        </svg></span>
         <span class="main"><span class="t">The talk itself, as an HTML deck</span>
-          <span class="d">This whole argument as arrow-key slides with speaker notes and an overview mode — one file, of course.</span></span>
+          <span class="d">This whole argument as arrow-key slides with speaker notes and an overview mode. One file, of course.</span></span>
         <span class="side"><span class="chips"><i>arrow keys</i><i>S = notes</i><i>O = overview</i></span>
           <span class="file">deck-13-guild-talk.html</span></span>
       </a>
     </div>
-
-    <div class="agnostic">
-      <div class="box">
-        <h2>The pattern is tool-agnostic</h2>
-        <p>Nothing about these artifacts depends on a specific vendor. <strong>Any capable model — GPT, Claude, Gemini —
-        in any enterprise AI tool that can output a file</strong> can produce documents like these; HTML's properties come
-        from the format, not the assistant. The two lenses above are simply the concrete, documented, governed instances
-        most enterprises already have on the desk.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="gov" id="governance">
-  <div class="wrap">
-    <h2>Governance &amp; trust — what the vendors actually commit to</h2>
-    <p class="sub">Quoted or summarised from primary sources, linked per row. If a claim isn't on this page's source list,
-    this site doesn't make it.</p>
-    <div class="gov-grid">
-      <div class="gov-col m365">
-        <h3>M365 Copilot</h3>
-        <ul>
-          <li>Copilot Pages supports "lightweight apps": create, edit, and preview runnable code directly inside a page.
-            <span class="src"><a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc">Microsoft Support — Build lightweight apps within Microsoft 365 Copilot Pages</a></span></li>
-          <li>Code previews for AI-generated content in Copilot Chat &amp; Pages are a Cloud Policy: enabled by default, and your admin can disable or scope it.
-            <span class="src"><a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration">Microsoft Learn — Manage Copilot Pages and Copilot Notebooks</a></span></li>
-          <li>The App Builder agent creates lightweight, interactive apps from a description. Availability varies by tenant, licence and rollout.
-            <span class="src"><a href="https://www.microsoft.com/en-us/microsoft-365/blog/2025/10/28/microsoft-365-copilot-now-enables-you-to-build-apps-and-workflows/">Microsoft 365 blog — 28 Oct 2025</a></span></li>
-        </ul>
-      </div>
-      <div class="gov-col gh">
-        <h3>GitHub Copilot (Business / Enterprise)</h3>
-        <ul>
-          <li>Feature availability — completions, chat, code review, agent mode — is controlled by enterprise policies, including content exclusion.
-            <span class="src"><a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies">GitHub Docs — Managing policies for Copilot in your enterprise</a></span></li>
-          <li>With data residency enforced: "Your code, prompts, and Copilot responses never leave your region during inference processing." EU and US supported.
-            <span class="src"><a href="https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/github-copilot-with-data-residency">GitHub Docs — Copilot with data residency</a></span></li>
-          <li>Business/Enterprise data is not used to train GitHub's models; IP indemnification applies to unmodified suggestions when the duplicate-detection filter is set to "Block".
-            <span class="src"><a href="https://copilot.github.trust.page/faq">GitHub Copilot Trust Center — FAQ</a></span></li>
-        </ul>
-      </div>
-    </div>
-    <p class="gov-fallback">If your tenant disables code previews, every demo on this page still works the boring way:
-    ask for the HTML, copy it into a file, open the file. That path needs no feature flags at all.</p>
   </div>
 </section>
 
 <section class="why" id="why-html">
   <div class="wrap">
     <h2>Why HTML, specifically, in a regulated environment</h2>
-    <p class="sub">These six are arguments from the format's properties — judge them on their merits; no vendor promises them.</p>
+    <p class="sub">Six properties of the format itself. Judge them on their merits; no vendor promises them.</p>
     <div class="why-grid">
-      <div class="why-card"><b>One file</b><span>Self-contained — nothing to install, no dependency to security-review, nothing to break next quarter.</span></div>
+      <div class="why-card"><b>One file</b><span>Self-contained. Nothing to install, no dependency to security-review, nothing to break next quarter.</span></div>
       <div class="why-card"><b>Opens everywhere</b><span>Every locked-down corporate laptop already ships the only runtime it needs: a browser.</span></div>
       <div class="why-card"><b>No new licences</b><span>No viewer, no SaaS seat, no procurement cycle between your document and its reader.</span></div>
-      <div class="why-card"><b>Diffable in git</b><span>It's plain text. Version it, review it, and trace who changed what — like any other code.</span></div>
+      <div class="why-card"><b>Diffable in git</b><span>It is plain text. Version it, review it, and trace who changed what, like any other code.</span></div>
       <div class="why-card"><b>Attachable as evidence</b><span>Drops into a change ticket, audit pack or mail thread as one file that still works when opened.</span></div>
-      <div class="why-card"><b>Works air-gapped</b><span>Zero external requests by construction — verify it with one grep, or by turning the network off.</span></div>
+      <div class="why-card"><b>Works air-gapped</b><span>Zero external requests by construction. Verify it with one grep, or by turning the network off.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="appendix" id="tools">
+  <div class="wrap">
+    <h2>Footnote: running this inside enterprise tools</h2>
+    <p class="sub">Nothing above depends on any vendor. But if your organisation runs Microsoft 365 Copilot or GitHub
+    Copilot, these documented features render or author HTML there, under admin control.</p>
+    <div class="box">
+      <table>
+        <tr><td>Microsoft 365 Copilot Pages supports "lightweight apps": create, edit, and preview runnable code directly inside a page.</td>
+            <td class="src"><a href="https://support.microsoft.com/en-us/topic/build-lightweight-apps-within-microsoft-365-copilot-pages-fd42d9f3-258e-4bf9-8c5e-a73083a197cc" target="_blank" rel="noopener">Microsoft Support</a></td></tr>
+        <tr><td>Code previews in Copilot Chat and Pages are a Cloud Policy: enabled by default, and your admin can disable or scope it.</td>
+            <td class="src"><a href="https://learn.microsoft.com/en-us/microsoft-365/loop/cpcn-admin-configuration" target="_blank" rel="noopener">Microsoft Learn</a></td></tr>
+        <tr><td>GitHub Copilot agent mode determines which files to change and proposes edits for the user's approval, governed by enterprise policies.</td>
+            <td class="src"><a href="https://docs.github.com/en/copilot/get-started/features" target="_blank" rel="noopener">GitHub Docs</a> · <a href="https://docs.github.com/en/copilot/how-tos/administer-copilot/manage-for-enterprise/manage-enterprise-policies" target="_blank" rel="noopener">policies</a></td></tr>
+        <tr><td>With GitHub's data residency enforced, "your code, prompts, and Copilot responses never leave your region during inference processing" (EU and US). Business and Enterprise data is not used for model training.</td>
+            <td class="src"><a href="https://docs.github.com/en/enterprise-cloud@latest/admin/data-residency/github-copilot-with-data-residency" target="_blank" rel="noopener">GitHub Docs</a> · <a href="https://copilot.github.trust.page/faq" target="_blank" rel="noopener">Trust Center</a></td></tr>
+      </table>
     </div>
   </div>
 </section>
 
 <section class="credits" id="credits">
   <div class="wrap">
-    <h2>Credits &amp; inspiration</h2>
-    <p><strong>Thank you, Thariq.</strong> The idea that an AI agent should hand you an HTML artifact instead of a wall of
-    markdown comes from <a href="https://thariqs.github.io/html-effectiveness/">Thariq Shihipar's "The unreasonable
-    effectiveness of HTML"</a> — credit for the original insight is entirely his. The enterprise lens, the Copilot
-    governance work, the prompts, and all thirteen examples here are new work inspired by it, not copies of it.</p>
-    <p>This site — including every artifact on it — was <strong>built with an AI coding agent</strong> (Claude Code).
-    Which is, of course, itself the point.</p>
+    <h2>Credits and inspiration</h2>
+    <p><strong>Thank you, Thariq.</strong> The idea that an AI agent should hand you an HTML artifact instead of a wall
+    of markdown comes from <a href="https://thariqs.github.io/html-effectiveness/" target="_blank" rel="noopener">Thariq Shihipar's
+    "The unreasonable effectiveness of HTML"</a>. Credit for the original insight is entirely his. The enterprise lens,
+    the briefs, and all thirteen examples here are new work inspired by it, not copies of it.</p>
+    <p>This site, including every artifact on it, was <strong>built with Claude Code, an LLM coding agent</strong>.
+    Fittingly.</p>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
     <span class="who">Vishal Shah</span>
-    <a href="https://www.linkedin.com/in/vishal8shah">LinkedIn</a>
-    <a href="https://github.com/vishal8shah/Power-of-HTML-with-LLMs">GitHub</a>
-    <a href="https://www.vishalshah.app">vishalshah.app</a>
+    <a href="https://www.linkedin.com/in/vishal8shah" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/vishal8shah/Power-of-HTML-with-LLMs" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.vishalshah.app" target="_blank" rel="noopener">vishalshah.app</a>
     <span class="legal">MIT licence · no trackers, no analytics, no external requests · June 2026</span>
   </div>
 </footer>
