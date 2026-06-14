@@ -7,7 +7,7 @@ Each artifact carries the brief that produces it. Run that brief in the model of
 you will get similar output. Not identical, and that is the point: the capability belongs to
 LLMs, not to any one product.
 
-**Live site:** https://vishal8shah.github.io/Power-of-HTML-with-LLMs/
+**Live site:** https://vishal8shah.github.io/HTML-with-Claude/
 
 ## What's here
 
