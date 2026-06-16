@@ -43,8 +43,12 @@ d.rectangle([x + 222, 340, x + 432, 352], fill=GH)
 d.text((x, 396), "13 single-file HTML artifacts, generated with LLMs,", font=sans(30), fill=DARK_SOFT)
 d.text((x, 440), "for business users and engineers in the enterprise.", font=sans(30), fill=DARK_SOFT)
 
-d.text((x, 530), "Every claim demonstrated live or cited  ·  0 external requests  ·  works from file://",
-       font=mono(21), fill=DARK_SOFT)
+footnote = "Core claims demonstrated or cited  ·  no network calls in these examples  ·  works from file://"
+# keep the footnote inside the safe margin: step the size down only if the longer text overflows
+foot_size = 21
+while foot_size > 14 and d.textlength(footnote, font=mono(foot_size)) > W - 2 * x:
+    foot_size -= 1
+d.text((x, 530), footnote, font=mono(foot_size), fill=DARK_SOFT)
 
 out = Path(__file__).resolve().parent.parent / "assets" / "og-image.png"
 out.parent.mkdir(exist_ok=True)

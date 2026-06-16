@@ -4,8 +4,10 @@ Thirteen self-contained `.html` artifacts showing what LLMs can produce for **bu
 and for **engineers**, plus a gallery page that ties it together.
 Each artifact carries the brief that produces it. Run that brief in the model of your choice
 (GPT, Claude, Gemini, Grok, DeepSeek, or your enterprise assistant), iterate a few rounds, and
-you will get similar output. Not identical, and that is the point: the capability belongs to
-LLMs, not to any one product.
+you can often get directionally similar output. Not identical, and that is the point: the
+capability belongs to LLMs, not to any one product.
+
+This is a demonstration pattern, not a production system or security certification.
 
 **Live site:** https://vishal8shah.github.io/HTML-with-Claude/
 
