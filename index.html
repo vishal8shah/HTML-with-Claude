@@ -319,7 +319,7 @@
       printable, attachable to a ticket, and openable on any locked-down laptop.</p>
       <p class="thesis">The thirteen artifacts below are real, working files, generated with an LLM. Each carries the
       brief that produced it. Run that brief in the model of your choice, whether that is GPT, Claude, Gemini, Grok or
-      DeepSeek, and iterate a few rounds. You will get <strong>similar output, not identical</strong>. That is the point:
+      DeepSeek, and iterate a few rounds. You can often get <strong>broadly similar output, not identical</strong>. That is the point:
       the capability belongs to LLMs, not to any one product.</p>
     </div>
     <aside class="spec" aria-label="Verifiable properties of this site">
@@ -340,10 +340,11 @@
   <div class="wrap">
     <span class="tag">Read this first</span>
     <p>These artifacts were built with <strong>Claude Code, an LLM coding agent</strong>, over several rounds of
-    iteration. They are shown as the bar to aim for, not as a guaranteed first answer. Any capable model can reach
-    similar quality if you iterate; none will reproduce these byte for byte. Treat each artifact as a first draft to
+    iteration. They are shown as the bar to aim for, not as a guaranteed first answer. Most capable models can get
+    close if you iterate; none will reproduce these byte for byte. Treat each artifact as a first draft to
     check, not a finished record: an LLM can be confidently wrong, so a person reviews and owns the contents before
-    anyone relies on them. All names and numbers are fictional. ABC Corp does not exist.</p>
+    anyone relies on them. All names and numbers are fictional. ABC Corp does not exist. This is a demonstration
+    pattern, not a production system or security certification.</p>
   </div>
 </div>
 
@@ -439,8 +440,8 @@ decommission sign-off moved to 17 Jul.
       <div class="eyebrow">Lens 1 · LLMs for business users</div>
       <h2>Everyday documents, upgraded</h2>
       <p>No IDE, no repo, no deploy. You paste a brief into the assistant you already have, save its answer as a
-      <code>.html</code> file, and open it in a browser. That is the whole workflow. The six artifacts below replace
-      the documents business teams produce every week.</p>
+      <code>.html</code> file, and open it in a browser. That is the whole workflow. The six artifacts below show
+      how everyday business documents can be upgraded, and in some cases replaced, by self-contained HTML.</p>
     </div>
     <div class="register">
       <a class="row" href="demos/biz-01-status-onepager.html">
@@ -646,10 +647,10 @@ decommission sign-off moved to 17 Jul.
     <p class="sub">The five questions that come up the moment you suggest this inside an enterprise. Short, honest answers.</p>
     <div class="box">
       <table class="obj-table">
-        <tr><td class="q">Is it secure?</td><td>One file, <span class="yes">zero external requests</span> by construction. Nothing to install, no runtime to CVE-scan. A reviewer can read the whole thing, or just turn the network off.</td></tr>
+        <tr><td class="q">Is it secure?</td><td>Lower security overhead than a typical web app: no package dependency tree, no third-party runtime, and <span class="yes">no network calls in these examples</span>. The whole artifact is inspectable as plain text, but the HTML and JavaScript still need human review before enterprise use.</td></tr>
         <tr><td class="q">Is it maintainable?</td><td>It is plain text. It diffs in git, reviews like code, and has no framework or build step to churn or break next quarter.</td></tr>
         <tr><td class="q">Does it work as a record?</td><td>It attaches to a change ticket or evidence pack as one file, and still opens in two years with nothing but a browser. A person signs off on the contents.</td></tr>
-        <tr><td class="q">Better than a PDF or PowerPoint?</td><td>For interactive evidence, yes: it is filterable and printable <em>and</em> diffable. A PDF is none of those, and a deck is not attachable as record.</td></tr>
+        <tr><td class="q">Better than a PDF or PowerPoint?</td><td>For interactive evidence, often yes: HTML can be filterable, printable <em>and</em> diffable. PDF and PowerPoint are still valid records, but they are weaker when interaction, inspection or version diffs matter.</td></tr>
         <tr class="honest"><td class="q">Will every LLM nail it first try?</td><td><b>No — and that honesty is the point.</b> You iterate a few rounds, in any capable model. These are the bar to aim for, not a guaranteed first answer. None will reproduce them byte for byte.</td></tr>
       </table>
     </div>
